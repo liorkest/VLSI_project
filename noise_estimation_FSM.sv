@@ -27,6 +27,7 @@ module noise_estimation_FSM #(
 
 logic [31:0] count;
 logic [31:0] block_count;
+logic updated_block_count;
 
 typedef enum logic [2:0] {
 	IDLE = 0,
@@ -52,30 +53,31 @@ always_comb begin
 	variance_start_of_data = 0;
 			
 	case (state)
-		IDLE:
-			count = 0;
-			block_count = 0;
+		IDLE: begin
+
 			shift_reg_rst_n = 0;
 			if (start_of_frame) begin
 				next_state = READ_BLOCK;
 			end else begin
 				next_state = IDLE;
 			end
-		READ_BLOCK:
+		end
+		READ_BLOCK: begin
 			if (count == TOTAL_SAMPLES) begin
-				count = 0;
+				//count = 0;
 				next_state = WAIT_FOR_MEAN;
 			end else begin
 				shift_en = 1; // output
-				count = count + 1;
+				//count = count + 1;
 				next_state = READ_BLOCK;
 			end
-		WAIT_FOR_MEAN:
-			if (block_count == blocks_per_frame) begin
+		end
+		WAIT_FOR_MEAN: begin
+			if (block_count == blocks_per_frame) begin //maybe needs to be 'blocks_per_frame +1'
 				next_state = IDLE;
 			end else if (mean_ready) begin
 				variance_start_of_data = 1;
-				block_count = block_count + 1;
+				//block_count = block_count + 1;
 				next_state = READ_BLOCK;
 			end else begin
 				next_state = WAIT_FOR_MEAN;
@@ -83,10 +85,37 @@ always_comb begin
 			if (variance_ready && block_count > 0) begin
 				noise_mean_en = 1;
 			end
+		end
 		default: begin
 			next_state = IDLE;
 		end
 	endcase
+end
+
+
+// Data processing logic
+always_ff @(posedge clk or negedge rst_n) begin
+	if (!rst_n) begin
+		count<= 0;
+		block_count <= 0;
+		updated_block_count <= 0;
+	end else begin
+		if (state == IDLE) begin
+			count <= 0;
+			block_count <= 0;
+			updated_block_count <= 0;
+		end else if (state == READ_BLOCK) begin
+			updated_block_count <= 0;
+			if (count == TOTAL_SAMPLES) begin
+				count <= 0;
+			end else begin
+				count <= count + 1;
+			end
+		end else if (state == WAIT_FOR_MEAN && !updated_block_count) begin
+			block_count <= block_count + 1;
+			updated_block_count <= 1;
+		end
+	end
 end
 
 endmodule
