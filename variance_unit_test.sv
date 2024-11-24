@@ -11,7 +11,6 @@ module variance_unit_tb;
 // Parameters
 parameter DATA_WIDTH = 8;
 parameter TOTAL_SAMPLES = 64;
-parameter TOTAL_SAMPLES_WIDTH = 6;
 
 // Testbench signals
 logic                   clk;
@@ -25,8 +24,7 @@ logic                   ready;
 // Instantiate the variance calculator module
 variance_unit #(
 	.DATA_WIDTH(DATA_WIDTH),
-	.TOTAL_SAMPLES(TOTAL_SAMPLES),
-	.TOTAL_SAMPLES_WIDTH(TOTAL_SAMPLES_WIDTH)
+	.TOTAL_SAMPLES(TOTAL_SAMPLES)
 ) uut (
 	.clk(clk),
 	.rst_n(rst_n),

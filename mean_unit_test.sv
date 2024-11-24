@@ -2,79 +2,123 @@
  * File          : mean_unit_test.sv
  * Project       : RTL
  * Author        : eplkls
- * Creation date : Nov 10, 2024
+ * Creation date : Nov 24, 2024
  * Description   :
  *------------------------------------------------------------------------------*/
 
-module mean_unit_tb #(parameter data_len = 25, frac_bits = 8);
+module mean_unit_tb;
 
-// Inputs
-reg clk;
-reg reset;
-reg [31:0] data_in;
-reg valid;
-reg start_data;
+// Parameters
+parameter DATA_WIDTH = 8;
+parameter TOTAL_SAMPLES = 64;
 
-// Outputs
-wire [31:0] mean;
+// Testbench signals
+logic                   clk;
+logic                   rst_n;
+logic [DATA_WIDTH-1:0]  data_in;
+logic                   start_data_in;
+logic [DATA_WIDTH-1:0]  mean_out;
+logic                   ready;
 
-// Instantiate the Unit Under Test (UUT)
-mean_unit #(.frac_bits(frac_bits)) uut (
-  .clk(clk),
-  .reset(reset),
-  .data_len(data_len),
-  .data_in(data_in),
-  .valid(valid),
-  .start_data(start_data),
-  .mean(mean)
+// Instantiate the variance calculator module
+mean_unit #(
+	.DATA_WIDTH(DATA_WIDTH),
+	.TOTAL_SAMPLES(TOTAL_SAMPLES)
+) uut (
+	.clk(clk),
+	.rst_n(rst_n),
+	.data_in(data_in),
+	.start_data_in(start_data_in),
+	.mean_out(mean_out),
+	.ready(ready)
 );
 
 // Clock generation
-always #5 clk = ~clk;
-
-// Testbench logic
 initial begin
-  // Initialize signals
-  clk <= 0;
-  reset <= 1;
-  data_in <= 0;
-  valid <= 0;
-  start_data <= 0;
-
-  // Apply reset
-  #10 reset <= 0;
-
-  // Test case 1: Empty input sequence
-  #10 start_data <= 1;
-  #10 start_data <= 0;
-
-  // Test case 2: Single-value input sequence
-  #10 start_data <= 1;
-  #10 data_in <= 10;
-  valid <= 1;
-  #10 valid <= 0;
-  #10 start_data <= 0;
-
-  // Test case 3: Multiple-value input sequence
-  #10 start_data <= 1;
-  for (int i = 0; i < data_len; i++) begin
-	data_in <= 3;
-	valid <= 1;
-	#10
-	start_data <= 0;
-	
-  end
-  #10
-  start_data <= 1;
-  for (int i = 0; i < data_len ; i++) begin
-	data_in <= 2;
-	#10
-	start_data <= 0;
-	valid <= 1;
-  end
-
-  // Finish simulation
-  #10 $finish;
+	clk = 1'b0;
+	start_data_in = 1'b0;
+	forever #5 clk = ~clk; // 100 MHz clock
 end
 
+// Task to reset the design
+task reset;
+	begin
+		rst_n = 0;
+		#20;
+		rst_n = 1;
+	end
+endtask
+
+// Task to feed sample data
+task feed_sample(input [DATA_WIDTH-1:0] sample, int i);
+	begin
+		data_in = sample;
+		#10; // Wait one clock cycle
+	end
+endtask
+
+// Stimulus generation
+initial begin
+	integer i;
+	logic [DATA_WIDTH-1:0] sample_data [TOTAL_SAMPLES-1:0]; // Array for test samples
+	// Reset the design
+	reset;
+	// Initialize sample data (you can customize this array)
+	for (i = 0; i < TOTAL_SAMPLES; i++) begin
+		sample_data[i] = i; // Example: Sequential data values
+	end
+
+	// Set a known mean value (can be any value for testing)
+//	mean = 8'd31;
+	
+	start_data_in = 1'b1;
+	#10;
+	start_data_in = 1'b0;
+	// Feed samples to the variance calculator
+	for (i = 0; i < TOTAL_SAMPLES; i++) begin
+
+		feed_sample(sample_data[i], i);
+	end
+
+	// Wait for ready signal and check the result
+	@(posedge ready);
+	$display("Variance calculated: %d", mean_out);
+	#10
+	// Initialize sample data (you can customize this array)
+	for (i = 0; i < TOTAL_SAMPLES; i++) begin
+		sample_data[i] = i + 10; // Example: Sequential data values
+	end
+
+	// Set a known mean value (can be any value for testing)
+//	mean = 8'd41;
+	
+	start_data_in = 1'b1;
+	#10;
+	start_data_in = 1'b0;
+	// Feed samples to the variance calculator
+	for (i = 0; i < TOTAL_SAMPLES; i++) begin
+
+		feed_sample(sample_data[i], i);
+	end
+	
+	// Wait for ready signal and check the result
+	@(posedge ready);
+	$display("Variance calculated: %d", mean_out);
+	#10
+	// Set a known mean value (can be any value for testing)
+//	mean = 8'd6;
+	
+	start_data_in = 1'b1;
+	#10;
+	start_data_in = 1'b0;
+	// Feed samples to the variance calculator
+	for (i = 0; i < TOTAL_SAMPLES; i++) begin
+
+		feed_sample(8'd6, i);
+	end
+
+	// End simulation
+	#50;
+	$finish;
+end
 endmodule

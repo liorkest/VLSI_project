@@ -2,51 +2,47 @@
  * File          : mean_unit.sv
  * Project       : RTL
  * Author        : eplkls
- * Creation date : Nov 10, 2024
+ * Creation date : Nov 24, 2024
  * Description   :
  *------------------------------------------------------------------------------*/
 
-module mean_unit #(parameter frac_bits)(   // data_len will be block_size**2
-	input wire clk,
-	input wire reset,
-	input wire [31:0] data_len,
-	input wire [31:0] data_in,   // If we have one channel intensity than only one byte will be used, sign extended. 0-255
-	input wire valid,
-	input wire start_data,
-	output logic [31:0] mean,
-	output logic mean_valid
+module mean_unit #(
+	parameter DATA_WIDTH = 8,         // Width of input data
+	parameter TOTAL_SAMPLES = 64     // Total number of samples (MUST be power of 2)
+)(
+	input  logic                   clk,
+	input  logic                   rst_n,
+	input  logic [DATA_WIDTH-1:0]  data_in,   // 8-bit input data
+	input  logic                   start_data_in,
+	output logic [2*DATA_WIDTH-1:0]  mean_out, // 8-bit mean value output
+	output logic                   ready         // Ready signal when mean is computed
 );
 
 	// Internal signals
 	logic [31:0] count;
 	logic [31:0] sum;
-	logic last;
 
-
-	always @(posedge clk, posedge reset) begin
-		mean_valid <= 1'b0;
-		if (reset) begin
-			count <= 0;
-			mean <= 0;
-			last <= 1;
+	always_ff @(posedge clk or negedge rst_n) begin
+		if (!rst_n) begin
 			sum <= 0;
-			mean_valid <= 0;
-		end else if (valid) begin 
-			if (last) begin
-				last <= 1'b0;
-			end
-			if (count < data_len) begin
-				count <= count + 1;
-				
-				sum <= sum + data_in;
-			end else begin
-					mean <= (sum <<< frac_bits) / data_len;
-					mean_valid <= 1'b1;
-					count <= 0;
-					sum <= 0;
-					last <= 1'b1;
-			end
-		end 
+			count <= 0;
+			ready <= 0;
+			mean_out <= 0;
+		end else if (count < TOTAL_SAMPLES && !ready && !start_data_in) begin
+			sum <= sum + data_in;
+			count <= count + 1;
+		end else if (count == TOTAL_SAMPLES) begin
+			sum <= 0;
+			count <= 0;
+			ready <= 1;
+			mean_out <= sum >> $clog2(TOTAL_SAMPLES);
+		end else if (start_data_in) begin
+				ready <= 0;
+				count <= 0;
+		end
+		if(ready) begin
+			ready <= 0;
+		end
 	end
 
 endmodule
