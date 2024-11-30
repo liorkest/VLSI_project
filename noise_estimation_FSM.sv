@@ -9,7 +9,8 @@
 
 module noise_estimation_FSM #(
 	parameter DATA_WIDTH = 8,         // Width of input data
-	parameter TOTAL_SAMPLES = 64     // Total number of samples per block (MUST be power of 2)
+	parameter TOTAL_SAMPLES = 64,     // Total number of samples per block (MUST be power of 2)
+	parameter BLOCKS_PER_FRAME = 4
 )(
 	input logic                   clk,
 	input logic                   rst_n,
