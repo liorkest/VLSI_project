@@ -32,11 +32,17 @@ typedef enum logic [1:0] {
 
 state_t state, next_state;
 
-logic [DATA_WIDTH-1:0]  mean;   // 8-bit mean value (from mean_calculator)
 
 // wires from FSM
 logic shift_en, noise_mean_en, shift_reg_rst_n, variance_start_of_data, variance_ready;
+// interconnect wires between units
+logic [31:0] block_mean;
+logic [DATA_WIDTH-1:0] serial_out;
+logic [31:0] variance_of_block;
+logic clk_mean_of_variances_calculation;
+assign clk_mean_of_variances_calculation = clk & variance_ready; // slower clk for the big mean calculation
 
+// FSM
 noise_estimation_FSM #(
 	.DATA_WIDTH(DATA_WIDTH),
 	.TOTAL_SAMPLES(TOTAL_SAMPLES),
@@ -54,7 +60,7 @@ noise_estimation_FSM #(
 	.variance_start_of_data(variance_start_of_data)
 );
 
-logic [31:0] block_mean;
+
 mean_unit #(
 	.DATA_WIDTH(DATA_WIDTH),
 	.TOTAL_SAMPLES(TOTAL_SAMPLES)
@@ -62,13 +68,13 @@ mean_unit #(
 	.clk(clk),
 	.rst_n(rst_n),
 	.data_in(data_in),
-	.start_data_in(start_data_in),
-	.mean_out(mean_out),
+	.start_data_in(start_data),
+	.mean_out(block_mean),
 	.ready(mean_ready)
 );
 
 
-logic serial_out;
+
 shift_register#(
 	.BYTE_WIDTH(DATA_WIDTH),
 	.DEPTH(TOTAL_SAMPLES)
@@ -77,10 +83,10 @@ shift_register#(
 	.rst_n(shift_reg_rst_n),
 	.serial_in(data_in),
 	.shift_en(shift_en),
+
 	.serial_out(serial_out)
 );
 
-logic [31:0] variance_of_block;
 variance_unit #(
 	.DATA_WIDTH(DATA_WIDTH),
 	.TOTAL_SAMPLES(TOTAL_SAMPLES)
@@ -90,16 +96,17 @@ variance_unit #(
 	.data_in(serial_out),
 	.start_data_in(variance_start_of_data),
 	.mean_in(block_mean),
+
 	.variance_out(variance_of_block),
 	.ready(variance_ready)
 );
 
-// Instantiate the variance calculator module
+
 mean_unit #(
 	.DATA_WIDTH(DATA_WIDTH),
 	.TOTAL_SAMPLES(BLOCKS_PER_FRAME)
 ) mean_unit_for_variances (
-	.clk(clk & ready),
+	.clk(clk_mean_of_variances_calculation),
 	.rst_n(rst_n),
 	.data_in(variance_of_block),
 	.start_data_in(start_of_frame),

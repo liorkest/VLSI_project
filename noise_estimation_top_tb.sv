@@ -2,12 +2,14 @@
 // Testbench for noise_estimation module
 //------------------------------------------------------------------------------
 
+int count=1; // for signal generation
+
 module noise_estimation_tb;
 
     // Parameters
     parameter DATA_WIDTH = 8;
     parameter TOTAL_SAMPLES = 4;
-    parameter BLOCKS_PER_FRAME = 2;
+    parameter BLOCKS_PER_FRAME = 4;
 
     // Testbench signals
     logic                   clk;
@@ -57,7 +59,8 @@ module noise_estimation_tb;
         // Feed data for the first block
         repeat (TOTAL_SAMPLES) begin
             @(posedge clk);
-            data_in = $random % (2**DATA_WIDTH);
+            data_in = count % (2**DATA_WIDTH);
+            count = count + 1;
         end
         @(posedge clk);
         end_data = 1;
@@ -66,6 +69,7 @@ module noise_estimation_tb;
 	endtask
 
     // Test vectors and stimulus
+    int count = 1;
     initial begin
         // Initialize signals
         rst_n = 0;
@@ -79,8 +83,15 @@ module noise_estimation_tb;
         #20 rst_n = 1;
 
         // Send blocks
-        send_block(1);
-        send_block(0);
+        for(int i = 1; i <= BLOCKS_PER_FRAME; i++) begin
+            send_block(i == 1);
+            // set for next cycle
+            if(i==BLOCKS_PER_FRAME - 1) begin
+                end_of_frame = 1;
+            end else begin
+                end_of_frame = 0;
+            end
+        end
 
         // Wait for estimated noise to be ready
         wait (estimated_noise_ready);

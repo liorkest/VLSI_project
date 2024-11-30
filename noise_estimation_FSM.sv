@@ -18,7 +18,6 @@ module noise_estimation_FSM #(
 	input logic                   end_of_frame, 
 	input logic                   mean_ready, 
 	input logic                   variance_ready, 
-	input logic [31:0]            blocks_per_frame,
 	// outputs
 	output logic                   shift_en,
 	output logic                   noise_mean_en, ///
@@ -53,9 +52,8 @@ always_comb begin
 	shift_reg_rst_n = 1;
 	variance_start_of_data = 0;
 			
-	case (state)
+	case (state) 
 		IDLE: begin
-
 			shift_reg_rst_n = 0;
 			if (start_of_frame) begin
 				next_state = READ_BLOCK;
@@ -74,7 +72,7 @@ always_comb begin
 			end
 		end
 		WAIT_FOR_MEAN: begin
-			if (block_count == blocks_per_frame) begin //maybe needs to be 'blocks_per_frame +1'
+			if (block_count == BLOCKS_PER_FRAME) begin //maybe needs to be 'blocks_per_frame +1'
 				next_state = IDLE;
 			end else if (mean_ready) begin
 				variance_start_of_data = 1;
