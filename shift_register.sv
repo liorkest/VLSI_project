@@ -19,7 +19,8 @@ module shift_register #(
 
 	// Register array to hold the bytes
 	logic [BYTE_WIDTH-1:0] shift_reg [0:DEPTH-1];
-
+	int i;
+	
 	// Shift operation
 	always_ff @(posedge clk or negedge rst_n) begin
 		if (!rst_n) begin
@@ -28,8 +29,9 @@ module shift_register #(
 				shift_reg[i] <= '0;
 			end
 		end else if (shift_en) begin
+			
 			// Shift data
-			for (int i = DEPTH-1; i > 0; i--) begin
+			for (i = DEPTH-1; i > 0; i--) begin
 				shift_reg[i] <= shift_reg[i-1];
 			end
 			shift_reg[0] <= serial_in; // Load new data into the first position

@@ -13,7 +13,7 @@ module variance_unit #(
 	input  logic                   rst_n,
 	input  logic [DATA_WIDTH-1:0]  data_in,   // 8-bit input data
 	input  logic                   start_data_in,
-	input  logic [DATA_WIDTH-1:0]  mean_in,   // 8-bit mean value (from mean_calculator)
+	input  logic [2*DATA_WIDTH-1:0]  mean_in,   // 8-bit mean value (from mean_calculator)
 	output logic [2*DATA_WIDTH-1:0]  variance_out, // 16-bit variance output
 	output logic                   ready         // Ready signal when variance is computed
 );
@@ -28,13 +28,13 @@ module variance_unit #(
 		if (!rst_n) begin
 			diff <= 0;
 			diff_square <= 0;
-		end else if (count < TOTAL_SAMPLES && !ready && !start_data_in) begin
+		end else if (count < TOTAL_SAMPLES && !ready) begin
 			// Variance calculation: (data_in - mean_in)^2
 			diff <= data_in - mean_in; // Difference
 			diff_square <= diff * diff; // Square of difference
-		end else begin
-			diff <= 0;
-			diff_square <=0;
+		end 
+		if (start_data_in) begin
+			diff_square <= 0;
 		end
 	end
 
@@ -59,6 +59,7 @@ module variance_unit #(
 				if (start_data_in) begin
 					ready <= 0;
 					count <= 0;
+					variance_sum <= 0;
 				end else if (!ready) begin
 					variance_sum <= variance_sum + diff_square;
 					count <= count + 1;

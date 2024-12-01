@@ -8,8 +8,7 @@
 
 module noise_estimation #(
 	parameter DATA_WIDTH = 8,         // Width of input data (each pixel in the channel)
-	parameter TOTAL_SAMPLES = 64,     // Total number of pixels per block (MUST be power of 2)
-	parameter BLOCKS_PER_FRAME = 2 
+	parameter TOTAL_SAMPLES = 64     // Total number of pixels per block (MUST be power of 2)
 )(
 	input  logic                   clk,
 	input  logic                   rst_n,
@@ -17,7 +16,7 @@ module noise_estimation #(
 	input  logic                   start_of_frame, end_of_frame, 
 	input  logic [DATA_WIDTH-1:0]  data_in,   // 8-bit input data
 	input  logic                   start_data,
-	input logic                    end_data,
+	input  logic [31:0]            blocks_per_frame,
 	
 	output logic [2*DATA_WIDTH-1:0]  estimated_noise, 
 	output logic                   estimated_noise_ready         // Ready signal when estimated_noise is computed
@@ -34,19 +33,18 @@ state_t state, next_state;
 
 
 // wires from FSM
-logic shift_en, noise_mean_en, shift_reg_rst_n, variance_start_of_data, variance_ready;
+logic shift_en, noise_mean_en, shift_reg_rst_n, variance_start_of_data, variance_ready, mean_ready;
 // interconnect wires between units
-logic [31:0] block_mean;
+logic [2*DATA_WIDTH-1:0]  block_mean;
 logic [DATA_WIDTH-1:0] serial_out;
-logic [31:0] variance_of_block;
+logic [2*DATA_WIDTH-1:0] variance_of_block;
 logic clk_mean_of_variances_calculation;
 assign clk_mean_of_variances_calculation = clk & variance_ready; // slower clk for the big mean calculation
 
 // FSM
 noise_estimation_FSM #(
 	.DATA_WIDTH(DATA_WIDTH),
-	.TOTAL_SAMPLES(TOTAL_SAMPLES),
-	.BLOCKS_PER_FRAME(BLOCKS_PER_FRAME)
+	.TOTAL_SAMPLES(TOTAL_SAMPLES)
 ) noise_estimation_FSM_inst (
 	.clk(clk),
 	.rst_n(rst_n),
@@ -54,6 +52,7 @@ noise_estimation_FSM #(
 	.end_of_frame(end_of_frame),
 	.mean_ready(mean_ready),
 	.variance_ready(variance_ready),
+	.blocks_per_frame(blocks_per_frame),
 	.shift_en(shift_en),
 	.noise_mean_en(noise_mean_en),
 	.shift_reg_rst_n(shift_reg_rst_n),
@@ -72,7 +71,6 @@ mean_unit #(
 	.mean_out(block_mean),
 	.ready(mean_ready)
 );
-
 
 
 shift_register#(
@@ -96,15 +94,13 @@ variance_unit #(
 	.data_in(serial_out),
 	.start_data_in(variance_start_of_data),
 	.mean_in(block_mean),
-
 	.variance_out(variance_of_block),
 	.ready(variance_ready)
 );
 
 
 mean_unit #(
-	.DATA_WIDTH(DATA_WIDTH),
-	.TOTAL_SAMPLES(BLOCKS_PER_FRAME)
+	.DATA_WIDTH(DATA_WIDTH)
 ) mean_unit_for_variances (
 	.clk(clk_mean_of_variances_calculation),
 	.rst_n(rst_n),
@@ -113,34 +109,5 @@ mean_unit #(
 	.mean_out(estimated_noise),
 	.ready(estimated_noise_ready)
 );
-
-
-always_ff @(posedge clk or negedge rst_n) begin
-	if (!rst_n) begin
-		state <= PENDING;
-	end else begin
-		state <= next_state;
-	end
-end
-
-always_comb begin
-	case (state)
-		PENDING:
-			if (start_of_frame) begin
-				next_state = CALCULATING;
-			end else begin
-				next_state = PENDING;
-			end
-		CALCULATING:
-			if (estimated_noise_ready) begin
-				next_state = PENDING;
-			end else begin
-				next_state = CALCULATING;
-			end
-		default: begin
-			next_state = PENDING;
-		end
-	endcase
-end
 
 endmodule

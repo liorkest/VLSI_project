@@ -14,7 +14,7 @@ module mean_unit #(
 	input  logic                   rst_n,
 	input  logic [DATA_WIDTH-1:0]  data_in,   // 8-bit input data
 	input  logic                   start_data_in,
-	output logic [2*DATA_WIDTH-1:0]  mean_out, // 8-bit mean value output
+	output logic [2*DATA_WIDTH-1:0]  mean_out, // 16-bit mean value output
 	output logic                   ready         // Ready signal when mean is computed
 );
 
@@ -23,12 +23,13 @@ module mean_unit #(
 	logic [31:0] sum;
 
 	always_ff @(posedge clk or negedge rst_n) begin
+		
 		if (!rst_n) begin
 			sum <= 0;
 			count <= 0;
-			ready <= 0;
 			mean_out <= 0;
-		end else if (count < TOTAL_SAMPLES && !ready && !start_data_in) begin
+			ready <=0;
+		end else if (count < TOTAL_SAMPLES && !start_data_in && !ready) begin
 			sum <= sum + data_in;
 			count <= count + 1;
 		end else if (count == TOTAL_SAMPLES) begin
@@ -37,12 +38,12 @@ module mean_unit #(
 			ready <= 1;
 			mean_out <= sum >> $clog2(TOTAL_SAMPLES);
 		end else if (start_data_in) begin
-				ready <= 0;
 				count <= 0;
+				ready <= 0;
 		end
-		if(ready) begin
-			ready <= 0;
-		end
+
 	end
+	
+	
 
 endmodule
