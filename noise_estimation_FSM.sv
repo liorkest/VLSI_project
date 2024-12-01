@@ -22,7 +22,8 @@ module noise_estimation_FSM #(
 	output logic                   shift_en,
 	output logic                   noise_mean_en, ///
 	output logic                   shift_reg_rst_n,
-	output logic                   variance_start_of_data
+	output logic                   variance_start_of_data,
+	output logic                   start_data_mean2
 );
 
 logic [31:0] count;
@@ -50,7 +51,6 @@ end
 always_comb begin
 	// default
 	shift_en  = 0;
-	noise_mean_en = 0;
 	shift_reg_rst_n = 1;
 	case (state) 
 		IDLE: begin
@@ -80,9 +80,7 @@ always_comb begin
 			end else begin
 				next_state = WAIT_FOR_MEAN;
 			end
-			if (variance_ready && block_count > 0) begin
-				noise_mean_en = 1;
-			end
+
 		end
 		default: begin
 			next_state = IDLE;
@@ -99,34 +97,46 @@ always_ff @(posedge clk or negedge rst_n) begin
 		block_count <= 0;
 		updated_block_count <= 0;
 		mean_ready_counter <= 0;
+		noise_mean_en <= 0;
+		start_data_mean2 <= 0;
 	end else begin
 		if (state == IDLE) begin
+			count <= 0;
+			block_count <= 0;
+			updated_block_count <= 0;
+			mean_ready_counter <= 0;
+			noise_mean_en <= 0;
+		end else if (state == READ_BLOCK) begin
+			noise_mean_en <= 0;
+			updated_block_count <= 0;
+			mean_ready_counter <= 0;
+			if (count == TOTAL_SAMPLES) begin
 				count <= 0;
-				block_count <= 0;
-				updated_block_count <= 0;
-				mean_ready_counter <= 0;
-			end else if (state == READ_BLOCK) begin
-				updated_block_count <= 0;
-				mean_ready_counter <= 0;
-				if (count == TOTAL_SAMPLES) begin
-					count <= 0;
-				end else begin
-					count <= count + 1;
-				end
-			end else if (state == WAIT_FOR_MEAN) begin
-				if (!updated_block_count) begin
-					block_count <= block_count + 1;
-					updated_block_count <= 1;
-				end
-				if (mean_ready) begin
-					mean_ready_counter <= mean_ready_counter + 1;
-				end
-				if (mean_ready_counter == 2) begin
-					variance_start_of_data <= 1;
-					mean_ready_counter <= 0;
-				end
+			end else begin
+				count <= count + 1;
 			end
+		end else if (state == WAIT_FOR_MEAN) begin
+			if (!updated_block_count) begin
+				block_count <= block_count + 1;
+				updated_block_count <= 1;
+			end
+			if (mean_ready) begin
+				mean_ready_counter <= mean_ready_counter + 1;
+			end
+			if (mean_ready_counter == 2) begin
+				variance_start_of_data <= 1;
+				mean_ready_counter <= 0;
+			end
+		end	
+		if (variance_ready && block_count > 0) begin
+			noise_mean_en <= 1;
+			if (block_count == 2) begin
+				start_data_mean2 <= 1;
+			end else begin
+				start_data_mean2 <= 0;
+			end			
 		end
+	end
 end
 
 endmodule

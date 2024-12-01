@@ -38,8 +38,6 @@ logic shift_en, noise_mean_en, shift_reg_rst_n, variance_start_of_data, variance
 logic [2*DATA_WIDTH-1:0]  block_mean;
 logic [DATA_WIDTH-1:0] serial_out;
 logic [2*DATA_WIDTH-1:0] variance_of_block;
-logic clk_mean_of_variances_calculation;
-assign clk_mean_of_variances_calculation = clk & variance_ready; // slower clk for the big mean calculation
 
 // FSM
 noise_estimation_FSM #(
@@ -56,7 +54,8 @@ noise_estimation_FSM #(
 	.shift_en(shift_en),
 	.noise_mean_en(noise_mean_en),
 	.shift_reg_rst_n(shift_reg_rst_n),
-	.variance_start_of_data(variance_start_of_data)
+	.variance_start_of_data(variance_start_of_data),
+	.start_data_mean2(start_data_mean2)
 );
 
 
@@ -100,12 +99,13 @@ variance_unit #(
 
 
 mean_unit #(
-	.DATA_WIDTH(DATA_WIDTH)
+	.DATA_WIDTH(DATA_WIDTH),
+	.TOTAL_SAMPLES(4) ////////////////////////////NEED to change to signal as input!!!!! [01.12.24]
 ) mean_unit_for_variances (
-	.clk(clk_mean_of_variances_calculation),
+	.clk(clk),
 	.rst_n(rst_n),
 	.data_in(variance_of_block),
-	.start_data_in(start_of_frame),
+	.start_data_in(start_data_mean2),
 	.mean_out(estimated_noise),
 	.ready(estimated_noise_ready)
 );
