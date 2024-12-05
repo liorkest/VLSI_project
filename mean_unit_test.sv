@@ -17,6 +17,7 @@ logic                   clk;
 logic                   rst_n;
 logic [DATA_WIDTH-1:0]  data_in;
 logic                   start_data_in;
+logic                   en;
 logic [DATA_WIDTH-1:0]  mean_out;
 logic                   ready;
 
@@ -29,6 +30,7 @@ mean_unit #(
 	.rst_n(rst_n),
 	.data_in(data_in),
 	.start_data_in(start_data_in),
+	.en(en),
 	.mean_out(mean_out),
 	.ready(ready)
 );
@@ -52,6 +54,11 @@ endtask
 // Task to feed sample data
 task feed_sample(input [DATA_WIDTH-1:0] sample, int i);
 	begin
+		if (i==0) begin
+			start_data_in = 1'b1;
+			#10;
+			start_data_in = 1'b0;
+		end
 		data_in = sample;
 		#10; // Wait one clock cycle
 	end
@@ -59,62 +66,55 @@ endtask
 
 // Stimulus generation
 initial begin
-	integer i;
+	int i;
 	logic [DATA_WIDTH-1:0] sample_data [TOTAL_SAMPLES-1:0]; // Array for test samples
 	// Reset the design
 	reset;
+	
+	//TEST [1 ... 64]
+	@(posedge clk);
 	// Initialize sample data (you can customize this array)
 	for (i = 0; i < TOTAL_SAMPLES; i++) begin
-		sample_data[i] = i; // Example: Sequential data values
+		sample_data[i] = i + 1;
 	end
 
-	// Set a known mean value (can be any value for testing)
-//	mean = 8'd31;
-	
+	en =1 ;
 	start_data_in = 1'b1;
 	#10;
 	start_data_in = 1'b0;
-	// Feed samples to the variance calculator
 	for (i = 0; i < TOTAL_SAMPLES; i++) begin
 
 		feed_sample(sample_data[i], i);
 	end
 
-	// Wait for ready signal and check the result
-	@(posedge ready);
-	$display("Variance calculated: %d", mean_out);
+	//TEST [10 ... 74]
 	#10
-	// Initialize sample data (you can customize this array)
 	for (i = 0; i < TOTAL_SAMPLES; i++) begin
-		sample_data[i] = i + 10; // Example: Sequential data values
+		sample_data[i] = i + 11;
 	end
 
-	// Set a known mean value (can be any value for testing)
-//	mean = 8'd41;
-	
-	start_data_in = 1'b1;
-	#10;
-	start_data_in = 1'b0;
-	// Feed samples to the variance calculator
+
 	for (i = 0; i < TOTAL_SAMPLES; i++) begin
 
 		feed_sample(sample_data[i], i);
 	end
 	
-	// Wait for ready signal and check the result
-	@(posedge ready);
-	$display("Variance calculated: %d", mean_out);
-	#10
-	// Set a known mean value (can be any value for testing)
-//	mean = 8'd6;
 	
-	start_data_in = 1'b1;
-	#10;
-	start_data_in = 1'b0;
-	// Feed samples to the variance calculator
+	//TEST const [6 ... 6]
+	#10
 	for (i = 0; i < TOTAL_SAMPLES; i++) begin
 
 		feed_sample(8'd6, i);
+	end
+	// Wait for ready signal 
+	#10;
+			
+	//TEST  [1 ... 128] with only even enabled => [2,4,...128] are counted
+	//// check of en flag /////////
+	// Feed samples to the variance calculator
+	for (i = 0; i < TOTAL_SAMPLES*2; i++) begin
+		en=i[0] + 1; // only odd values get '1'
+		feed_sample(i+1, i); // feed 1..128
 	end
 
 	// End simulation
