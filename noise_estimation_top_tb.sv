@@ -63,7 +63,7 @@ module noise_estimation_tb;
         repeat (TOTAL_SAMPLES) begin
 
 			#5; //@(negedge clk) 
-			data_in = data_in + 1;
+			data_in = data_in + 4; // changed to have bigger variances [05.12.24]
 			count = count + 1;
 			if (data_in==1) begin
 				//#10;

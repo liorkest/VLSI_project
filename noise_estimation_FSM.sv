@@ -92,12 +92,12 @@ end
 // Data processing logic
 always_ff @(posedge clk or negedge rst_n) begin
 	variance_start_of_data <= 0;
+	noise_mean_en <= 0;
 	if (!rst_n) begin
 		count<= 0;
 		block_count <= 0;
 		updated_block_count <= 0;
 		mean_ready_counter <= 0;
-		noise_mean_en <= 0;
 		start_data_mean2 <= 0;
 	end else begin
 		if (state == IDLE) begin
@@ -105,9 +105,7 @@ always_ff @(posedge clk or negedge rst_n) begin
 			block_count <= 0;
 			updated_block_count <= 0;
 			mean_ready_counter <= 0;
-			noise_mean_en <= 0;
 		end else if (state == READ_BLOCK) begin
-			noise_mean_en <= 0;
 			updated_block_count <= 0;
 			mean_ready_counter <= 0;
 			if (count == TOTAL_SAMPLES) begin
@@ -120,8 +118,10 @@ always_ff @(posedge clk or negedge rst_n) begin
 				block_count <= block_count + 1;
 				updated_block_count <= 1;
 			end
+			
 			if (mean_ready) begin
 				mean_ready_counter <= mean_ready_counter + 1;
+				variance_start_of_data <= 0;
 			end
 			if (mean_ready_counter == 2) begin
 				variance_start_of_data <= 1;
@@ -130,7 +130,7 @@ always_ff @(posedge clk or negedge rst_n) begin
 		end	
 		if (variance_ready && block_count > 0) begin
 			noise_mean_en <= 1;
-			if (block_count == 2) begin
+			if (block_count == 1) begin  // changed at [05.12.24]
 				start_data_mean2 <= 1;
 			end else begin
 				start_data_mean2 <= 0;

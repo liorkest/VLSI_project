@@ -22,12 +22,14 @@ module variance_unit #(
 	logic [DATA_WIDTH-1:0] count;                       // Counter for number of samples
 	logic signed [DATA_WIDTH - 1:0] diff; // added -1 [05.12.24]
 	logic [2 * DATA_WIDTH:0] diff_square;
+	logic data_started;
 
 	// Stage 1: Compute diff and diff_square
 	always_ff @(posedge clk or negedge rst_n) begin
 		if (!rst_n) begin
 			diff <= 0;
 			diff_square <= 0;
+			
 		end else if (count < TOTAL_SAMPLES  ) begin // removed "&& !ready && !start_data_in" [05.12.24]
 			// Variance calculation: (data_in - mean_in)^2
 			diff <= data_in - mean_in; // Difference
@@ -45,8 +47,20 @@ module variance_unit #(
 			count <= 0;
 			ready <= 0;
 			variance_out <= 0;
+			data_started <=0;
 		end else begin
-			if (count == TOTAL_SAMPLES + 1) begin
+			if (start_data_in) begin
+				ready <= 0;
+				count <= 0;
+				variance_sum <= 0;
+				data_started <=1;
+				
+			end 
+			if (data_started && !ready) begin
+				variance_sum <= variance_sum + diff_square;
+				count <= count + 1;
+			end 
+			if (count == TOTAL_SAMPLES) begin
 				// When count reaches TOTAL_SAMPLES, calculate final variance
 				// Reset for next cycle
 				variance_sum <= 0;
@@ -54,19 +68,10 @@ module variance_unit #(
 				ready <= 1;
 				// Division 
 				variance_out <= variance_sum >> $clog2(TOTAL_SAMPLES);
-				
-			end else begin
-				if (start_data_in) begin
-					ready <= 0;
-					count <= 0;
-					variance_sum <= 0;
-				end else if (!ready) begin
-					variance_sum <= variance_sum + diff_square;
-					count <= count + 1;
-				end
-				if(ready) begin
-					ready <= 0;
-				end
+			end 
+			
+			if(ready) begin
+				ready <= 0;
 			end
 		end
 	end
