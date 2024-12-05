@@ -28,14 +28,13 @@ module variance_unit #(
 		if (!rst_n) begin
 			diff <= 0;
 			diff_square <= 0;
-		end else if (count < TOTAL_SAMPLES && !ready && !start_data_in) begin
+		end else if (count < TOTAL_SAMPLES  ) begin // removed "&& !ready && !start_data_in" [05.12.24]
 			// Variance calculation: (data_in - mean_in)^2
 			diff <= data_in - mean_in; // Difference
 			diff_square <= diff * diff; // Square of difference
 		end 
 		if (start_data_in) begin
 			diff_square <= 0;
-			diff <= 0; // added in [05.12.24]
 		end
 	end
 

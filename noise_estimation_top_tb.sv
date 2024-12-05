@@ -98,7 +98,7 @@ module noise_estimation_tb;
         end
 		end_of_frame = 0;
         // Wait for estimated noise to be ready
-        wait (estimated_noise_ready);
+        //wait (estimated_noise_ready);
         $display("Estimated noise: %0d", estimated_noise);
 
         // Finish simulation

@@ -46,8 +46,11 @@ end
 task reset;
 	begin
 		rst_n = 0;
+		data_in=0;
+		mean_in=0;
 		#20;
 		rst_n = 1;
+		#10;
 	end
 endtask
 
@@ -56,6 +59,7 @@ task feed_sample(input [DATA_WIDTH-1:0] sample, int i);
 	begin
 		data_in = sample;
 		#10; // Wait one clock cycle
+		start_data_in = 1'b0;
 	end
 endtask
 
@@ -65,6 +69,7 @@ initial begin
 	logic [DATA_WIDTH-1:0] sample_data [TOTAL_SAMPLES-1:0]; // Array for test samples
 	// Reset the design
 	reset;
+	data_in=0;
 	@(posedge clk);
 	// Initialize sample data (you can customize this array)
 	for (i = 0; i < TOTAL_SAMPLES; i++) begin
@@ -75,8 +80,6 @@ initial begin
 	mean_in = 8'd32;
 	
 	start_data_in = 1'b1;
-	#10;
-	start_data_in = 1'b0;
 	// Feed samples to the variance calculator
 	for (i = 0; i < TOTAL_SAMPLES; i++) begin
 
@@ -96,8 +99,6 @@ initial begin
 	mean_in = 8'd42;
 	
 	start_data_in = 1'b1;
-	#10;
-	start_data_in = 1'b0;
 	// Feed samples to the variance calculator
 	for (i = 0; i < TOTAL_SAMPLES; i++) begin
 
@@ -112,8 +113,7 @@ initial begin
 	mean_in = 8'd6;
 	
 	start_data_in = 1'b1;
-	#10;
-	start_data_in = 1'b0;
+
 	// Feed samples to the variance calculator
 	for (i = 0; i < TOTAL_SAMPLES; i++) begin
 
