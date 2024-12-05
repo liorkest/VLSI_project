@@ -20,7 +20,7 @@ module variance_unit #(
 
 	logic [2* DATA_WIDTH - 1:0] variance_sum; // Accumulator for variance sum
 	logic [DATA_WIDTH-1:0] count;                       // Counter for number of samples
-	logic signed [DATA_WIDTH:0] diff;
+	logic signed [DATA_WIDTH - 1:0] diff; // added -1 [05.12.24]
 	logic [2 * DATA_WIDTH:0] diff_square;
 
 	// Stage 1: Compute diff and diff_square
@@ -28,13 +28,14 @@ module variance_unit #(
 		if (!rst_n) begin
 			diff <= 0;
 			diff_square <= 0;
-		end else if (count < TOTAL_SAMPLES && !ready) begin
+		end else if (count < TOTAL_SAMPLES && !ready && !start_data_in) begin
 			// Variance calculation: (data_in - mean_in)^2
 			diff <= data_in - mean_in; // Difference
 			diff_square <= diff * diff; // Square of difference
 		end 
 		if (start_data_in) begin
 			diff_square <= 0;
+			diff <= 0; // added in [05.12.24]
 		end
 	end
 

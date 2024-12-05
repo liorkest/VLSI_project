@@ -54,8 +54,6 @@ endtask
 // Task to feed sample data
 task feed_sample(input [DATA_WIDTH-1:0] sample, int i);
 	begin
-
-		
 		data_in = sample;
 		#10; // Wait one clock cycle
 	end
@@ -67,13 +65,14 @@ initial begin
 	logic [DATA_WIDTH-1:0] sample_data [TOTAL_SAMPLES-1:0]; // Array for test samples
 	// Reset the design
 	reset;
+	@(posedge clk);
 	// Initialize sample data (you can customize this array)
 	for (i = 0; i < TOTAL_SAMPLES; i++) begin
-		sample_data[i] = i; // Example: Sequential data values
+		sample_data[i] = i + 1; // Example: Sequential data values
 	end
-
+		
 	// Set a known mean value (can be any value for testing)
-	mean_in = 8'd31;
+	mean_in = 8'd32;
 	
 	start_data_in = 1'b1;
 	#10;
@@ -90,11 +89,11 @@ initial begin
 	#10
 	// Initialize sample data (you can customize this array)
 	for (i = 0; i < TOTAL_SAMPLES; i++) begin
-		sample_data[i] = i + 10; // Example: Sequential data values
+		sample_data[i] = i + 11; // Example: Sequential data values
 	end
 
 	// Set a known mean value (can be any value for testing)
-	mean_in = 8'd41;
+	mean_in = 8'd42;
 	
 	start_data_in = 1'b1;
 	#10;

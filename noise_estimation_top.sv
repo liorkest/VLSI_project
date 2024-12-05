@@ -67,6 +67,7 @@ mean_unit #(
 	.rst_n(rst_n),
 	.data_in(data_in),
 	.start_data_in(start_data),
+	.en(1),                        // entered constant [05.12.24]
 	.mean_out(block_mean),
 	.ready(mean_ready)
 );
@@ -106,6 +107,7 @@ mean_unit #(
 	.rst_n(rst_n),
 	.data_in(variance_of_block),
 	.start_data_in(start_data_mean2),
+	.en(noise_mean_en),
 	.mean_out(estimated_noise),
 	.ready(estimated_noise_ready)
 );
