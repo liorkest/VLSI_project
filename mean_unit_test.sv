@@ -23,11 +23,11 @@ logic                   ready;
 
 // Instantiate the variance calculator module
 mean_unit #(
-	.DATA_WIDTH(DATA_WIDTH),
-	.TOTAL_SAMPLES(TOTAL_SAMPLES)
+	.DATA_WIDTH(DATA_WIDTH)
 ) uut (
 	.clk(clk),
 	.rst_n(rst_n),
+	.total_samples(TOTAL_SAMPLES), //[06.12.24]
 	.data_in(data_in),
 	.start_data_in(start_data_in),
 	.en(en),

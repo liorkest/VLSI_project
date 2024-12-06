@@ -8,7 +8,7 @@
 
 module noise_estimation #(
 	parameter DATA_WIDTH = 8,         // Width of input data (each pixel in the channel)
-	parameter TOTAL_SAMPLES = 64     // Total number of pixels per block (MUST be power of 2)
+	parameter TOTAL_SAMPLES = 8     // Total number of pixels per frame (MUST be power of 2)
 )(
 	input  logic                   clk,
 	input  logic                   rst_n,
@@ -40,8 +40,9 @@ logic [DATA_WIDTH-1:0] serial_out;
 logic [2*DATA_WIDTH-1:0] variance_of_block;
 
 // FSM
-noise_estimation_FSM #(
-	.DATA_WIDTH(DATA_WIDTH),
+wire start_data_mean2;
+
+noise_estimation_FSM #(.DATA_WIDTH(DATA_WIDTH),
 	.TOTAL_SAMPLES(TOTAL_SAMPLES)
 ) noise_estimation_FSM_inst (
 	.clk(clk),
@@ -60,11 +61,11 @@ noise_estimation_FSM #(
 
 
 mean_unit #(
-	.DATA_WIDTH(DATA_WIDTH),
-	.TOTAL_SAMPLES(TOTAL_SAMPLES)
+	.DATA_WIDTH(DATA_WIDTH)
 ) mean_unit_inst (
 	.clk(clk),
 	.rst_n(rst_n),
+	.total_samples(blocks_per_frame),
 	.data_in(data_in),
 	.start_data_in(start_data),
 	.en(1),                        // entered constant [05.12.24]
@@ -100,11 +101,11 @@ variance_unit #(
 
 
 mean_unit #(
-	.DATA_WIDTH(DATA_WIDTH),
-	.TOTAL_SAMPLES(4) ////////////////////////////NEED to change to signal as input!!!!! [01.12.24]
+	.DATA_WIDTH(DATA_WIDTH*2) // added *2 [06.12.24 LK]
 ) mean_unit_for_variances (
 	.clk(clk),
 	.rst_n(rst_n),
+	.total_samples(blocks_per_frame),
 	.data_in(variance_of_block),
 	.start_data_in(start_data_mean2),
 	.en(noise_mean_en),

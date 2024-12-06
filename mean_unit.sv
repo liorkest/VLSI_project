@@ -7,11 +7,11 @@
  *------------------------------------------------------------------------------*/
 
 module mean_unit #(
-	parameter DATA_WIDTH = 8,         // Width of input data
-	parameter TOTAL_SAMPLES = 64     // Total number of samples (MUST be power of 2)
+	parameter DATA_WIDTH = 8        // Width of input data
 )(
 	input  logic                   clk,
 	input  logic                   rst_n,
+	input logic  [31:0]                    total_samples,//[06.12.24]
 	input  logic [DATA_WIDTH-1:0]  data_in,   // 8-bit input data
 	input  logic                   start_data_in,
 	input  logic                   en,
@@ -29,16 +29,16 @@ module mean_unit #(
 			count <= 0;
 			mean_out <= 0;
 			ready <=0;
-		end else if (count < TOTAL_SAMPLES && !start_data_in && !ready)  begin
+		end else if (count < total_samples && !start_data_in && !ready)  begin
 			if (en) begin
 					sum <= sum + data_in;
 					count <= count + 1;		
 			end
-		end else if (count == TOTAL_SAMPLES) begin
+		end else if (count == total_samples) begin
 			sum <= 0;
 			count <= 0;
 			ready <= 1;
-			mean_out <= sum >> $clog2(TOTAL_SAMPLES);
+			mean_out <= sum >> $clog2(total_samples);
 		end else if (start_data_in) begin
 				count <= 0;
 				ready <= 0;
