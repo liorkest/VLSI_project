@@ -18,7 +18,7 @@ module variance_unit #(
 	output logic                   ready         // Ready signal when variance is computed
 );
 
-	logic [2* DATA_WIDTH - 1:0] variance_sum; // Accumulator for variance sum
+	logic [31:0] variance_sum; // Accumulator for variance sum
 	logic [DATA_WIDTH-1:0] count;                       // Counter for number of samples
 	logic signed [DATA_WIDTH - 1:0] diff; // added -1 [05.12.24]
 	logic [2 * DATA_WIDTH:0] diff_square;
@@ -30,7 +30,7 @@ module variance_unit #(
 			diff <= 0;
 			diff_square <= 0;
 			
-		end else if (count < TOTAL_SAMPLES  ) begin // removed "&& !ready && !start_data_in" [05.12.24]
+		end else if (count < TOTAL_SAMPLES  && !ready && (start_data_in || data_started) ) begin 
 			// Variance calculation: (data_in - mean_in)^2
 			diff <= data_in - mean_in; // Difference
 			diff_square <= diff * diff; // Square of difference
@@ -60,7 +60,7 @@ module variance_unit #(
 				variance_sum <= variance_sum + diff_square;
 				count <= count + 1;
 			end 
-			if (count == TOTAL_SAMPLES) begin
+			if (count == TOTAL_SAMPLES + 1) begin
 				// When count reaches TOTAL_SAMPLES, calculate final variance
 				// Reset for next cycle
 				variance_sum <= 0;
@@ -68,6 +68,7 @@ module variance_unit #(
 				ready <= 1;
 				// Division 
 				variance_out <= variance_sum >> $clog2(TOTAL_SAMPLES);
+				data_started <= 0;
 			end 
 			
 			if(ready) begin

@@ -23,7 +23,8 @@ module noise_estimation_tb_more_data;
     logic [DATA_WIDTH-1:0]  data_in;
     logic                   start_data;
 	logic [31:0]            blocks_per_frame;
-
+	
+	logic                   mean_ready;
     logic [2*DATA_WIDTH-1:0] estimated_noise;
     logic                   estimated_noise_ready;
 
@@ -45,6 +46,7 @@ module noise_estimation_tb_more_data;
         .data_in(data_in),
         .start_data(start_data),
 		.blocks_per_frame(blocks_per_frame),
+		.mean_ready(mean_ready),
         .estimated_noise(estimated_noise),
         .estimated_noise_ready(estimated_noise_ready)
     );
@@ -52,16 +54,23 @@ module noise_estimation_tb_more_data;
 
 	reg [31:0] count = 1;
 
-	task send_block(input i);
-         #20; 
+	task send_block(int i);
+        //#20; 
         if (i==0) begin
             start_of_frame = 1;
 		end else if(i==blocks_per_frame - 1) begin
 			end_of_frame = 1;
+		end else begin
+			start_of_frame = 0;  
+			end_of_frame = 0; 
 		end
-
-		#20;
+		
+		if (i!=0) begin
+			wait(mean_ready == 1);
+			#30;
+		end 
 		start_data = 1;
+		
         // Feed data for the first block
         repeat (TOTAL_SAMPLES) begin
 
@@ -71,10 +80,11 @@ module noise_estimation_tb_more_data;
 			
 			count = count + 1;
 			#5; 
-			start_data = 0;       
+			start_data = 0;  
+			start_of_frame = 0;  
+			end_of_frame = 0; 
 		end
-		start_of_frame = 0;  
-		end_of_frame = 0; 
+
 	endtask
 
     // Test vectors and stimulus

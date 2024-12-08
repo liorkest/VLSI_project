@@ -18,6 +18,7 @@ module noise_estimation #(
 	input  logic                   start_data,
 	input  logic [31:0]            blocks_per_frame,
 	
+	output logic                   mean_ready,
 	output logic [2*DATA_WIDTH-1:0]  estimated_noise, 
 	output logic                   estimated_noise_ready         // Ready signal when estimated_noise is computed
 );
@@ -33,7 +34,7 @@ state_t state, next_state;
 
 
 // wires from FSM
-logic shift_en, noise_mean_en, shift_reg_rst_n, variance_start_of_data, variance_ready, mean_ready;
+logic shift_en, noise_mean_en, shift_reg_rst_n, variance_start_of_data, variance_ready;
 // interconnect wires between units
 logic [2*DATA_WIDTH-1:0]  block_mean;
 logic [DATA_WIDTH-1:0] serial_out;
