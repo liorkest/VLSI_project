@@ -24,9 +24,11 @@ module wiener_block_stats_tb;
     logic                   start_data;
 	logic [31:0]            blocks_per_frame;
 	
-	logic                   mean_ready;
-    logic [2*DATA_WIDTH-1:0] estimated_noise;
-    logic                   estimated_noise_ready;
+	//logic                   mean_ready; // removed 12.12 LK
+	logic [2*DATA_WIDTH-1:0] mean_out; // added [LK 12.12.24]
+    logic [2*DATA_WIDTH-1:0] block_variance;
+    logic                   variance_ready;
+	logic [DATA_WIDTH-1:0]  data_out;	
 
     // Clock generation
     initial begin
@@ -46,10 +48,11 @@ module wiener_block_stats_tb;
         .data_in(data_in),
         .start_data(start_data),
 		.blocks_per_frame(blocks_per_frame),
-		.mean_ready(mean_ready),
+		// .mean_ready(mean_ready), // removed  [LK 12.12.24]
 		.block_variance(block_variance),
 		.mean_out(mean_out),
-		.variance_ready(variance_ready)
+		.variance_ready(variance_ready),
+		.data_out(data_out)
     );
 
 
@@ -67,8 +70,8 @@ module wiener_block_stats_tb;
 		end
 		
 		if (i!=0) begin
-			wait(mean_ready == 1);
-			#30;
+			//wait(mean_ready == 1);
+			#40;
 		end 
 		start_data = 1;
 		
