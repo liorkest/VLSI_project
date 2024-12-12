@@ -51,28 +51,6 @@ always_ff @(posedge clk or negedge rst_n) begin
 	end
 end*/
 
-// NEW [LK 12.12.24]
-always_ff @(posedge clk or negedge rst_n) begin
-	if (!rst_n) begin
-		
-	end
-end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// end NEW [LK 12.12.24]
 
 wiener_block_stats_FSM #(.DATA_WIDTH(DATA_WIDTH),
 	.TOTAL_SAMPLES(TOTAL_SAMPLES)

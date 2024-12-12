@@ -17,7 +17,7 @@ module wiener_calc_tb;
   logic stats_ready; 
   logic [2*DATA_WIDTH-1:0] mean_of_block; 
   logic [2*DATA_WIDTH-1:0] variance_of_block; 
-  logic [2*DATA_WIDTH-1:0] variance_of_noise; 
+  logic [2*DATA_WIDTH-1:0] noise_variance; 
   logic [DATA_WIDTH-1:0] data_in; 
   logic [31:0] blocks_per_frame; 
  
@@ -34,7 +34,7 @@ module wiener_calc_tb;
 	.stats_ready(stats_ready), 
 	.mean_of_block(mean_of_block), 
 	.variance_of_block(variance_of_block), 
-	.variance_of_noise(variance_of_noise), 
+	.noise_variance(noise_variance), 
 	.data_in(data_in), 
 	.blocks_per_frame(blocks_per_frame), 
 	.data_out(data_out), 
@@ -52,7 +52,7 @@ module wiener_calc_tb;
 	  stats_ready = 0; 
 	  mean_of_block = 16'h0000; 
 	  variance_of_block = 16'h0000; 
-	  variance_of_noise = 16'h0000; 
+	  noise_variance = 16'h0000; 
 	  data_in = 0; 
 	  blocks_per_frame = 0; 
 	  #20; 
@@ -71,7 +71,7 @@ module wiener_calc_tb;
 	stats_ready = 1; 
 	mean_of_block = 16'h0080; // Example mean value 
 	variance_of_block = 16'h0040; // Example variance value 
-	variance_of_noise = 16'h0020; // Example noise variance value 
+	noise_variance = 16'h0020; // Example noise variance value 
 	data_in = 8'hC0; // Example pixel value 
 	blocks_per_frame = 1; 
  

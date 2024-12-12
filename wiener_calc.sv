@@ -21,7 +21,7 @@ module wiener_calc #(
 	input logic                   stats_ready,
 	input logic [2*DATA_WIDTH-1:0] mean_of_block, // added 
 	input logic [2*DATA_WIDTH-1:0] variance_of_block,
-	input logic [2*DATA_WIDTH-1:0] variance_of_noise,
+	input logic [2*DATA_WIDTH-1:0] noise_variance,
 	input logic [DATA_WIDTH-1:0]  data_in,	      // the current pixel channel value 0-255
 	input logic [31:0]            blocks_per_frame,
 	// outputs
@@ -78,7 +78,7 @@ always_comb begin
 end
 
 // divider wires
-assign a = variance_of_noise + variance_of_block;
+assign a = noise_variance + variance_of_block;
 assign b = variance_of_block;
 
 // Data processing logic
