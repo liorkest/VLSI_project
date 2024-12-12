@@ -21,7 +21,7 @@ module wiener_block_stats #(
 	output logic [2*DATA_WIDTH-1:0]  block_variance, 
 	output logic [2*DATA_WIDTH-1:0]  mean_out, 
 	 // output logic                     mean_ready, // we need to remove this! LK 12.12.24
-	output logic                   variance_ready,        
+	output logic                   variance_ready,   // pulse that says that block statistics are ready     
 	output logic [DATA_WIDTH-1:0]   data_out // added 12.12.24 LK
 );
 
@@ -50,6 +50,29 @@ always_ff @(posedge clk or negedge rst_n) begin
 			is_first_block <= 0;
 	end
 end*/
+
+// NEW [LK 12.12.24]
+always_ff @(posedge clk or negedge rst_n) begin
+	if (!rst_n) begin
+		
+	end
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// end NEW [LK 12.12.24]
 
 wiener_block_stats_FSM #(.DATA_WIDTH(DATA_WIDTH),
 	.TOTAL_SAMPLES(TOTAL_SAMPLES)
