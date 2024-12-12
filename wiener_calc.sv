@@ -14,7 +14,8 @@
 
 module wiener_calc #(
 	parameter DATA_WIDTH = 8,         // Width of input data
-	parameter TOTAL_SAMPLES = 64     // Total number of samples per block (MUST be power of 2)
+	parameter TOTAL_SAMPLES = 64,    // Total number of samples per block (MUST be power of 2)
+	parameter FRACTIONAL_BITS = 8    // for wiener calculation
 )(
 	input logic                   clk,
 	input logic                   rst_n,
@@ -30,15 +31,21 @@ module wiener_calc #(
 );
 
 // the divider needs to be changed to bigger data width!!!
-parameter integer a_width  = 8;
-parameter integer b_width  = 8;
-DW_div divider (.*);
-logic  [a_width-1 : 0] a;
-logic  [b_width-1 : 0] b;
-logic  [a_width-1 : 0] quotient;
-logic  [b_width-1 : 0] remainder;
-logic 	               divide_by_0;
 
+// divider inst
+DW_div divider (.*);
+logic  [DATA_WIDTH-1 : 0] a;
+logic  [DATA_WIDTH-1 : 0] b;
+logic  [DATA_WIDTH-1 : 0] quotient;
+logic  [DATA_WIDTH-1 : 0] remainder;
+logic 	               divide_by_0;
+logic [DATA_WIDTH + FRACTIONAL_BITS - 1:0] fixed_point_quotient;
+
+// divider inputs - regular numbers, NOT fixed point!
+assign a = noise_variance + variance_of_block;
+assign b = variance_of_block;
+// reformat result as fixed point
+assign fixed_point_quotient = (quotient << FRACTIONAL_BITS) + remainder;
 
 typedef enum logic [2:0] {
 	IDLE = 0,
@@ -77,14 +84,13 @@ always_comb begin
 	endcase
 end
 
-// divider wires
-assign a = noise_variance + variance_of_block;
-assign b = variance_of_block;
+
 
 // Data processing logic
 always_ff @(posedge clk or negedge rst_n) begin
 	if (!rst_n) begin
 		data_count<= 0;
+		data_out <= 0;
 	end else begin
 		if (state == IDLE && !next_state == calculate) begin
 			data_count <= 0;
@@ -93,7 +99,10 @@ always_ff @(posedge clk or negedge rst_n) begin
 				data_count <= 0;
 			end else begin
 				data_count <= data_count + 1;
-				data_out <= mean_of_block + quotient * (data_in - mean_of_block); /// NOT SURE about quotient!!!  this is only the whole part, not fraction. [12.12.24]
+				// approximation to whole numbers
+				//data_out <= mean_of_block + quotient * (data_in - mean_of_block); /// NOT SURE about quotient!!!  this is only the whole part, not fraction. [12.12.24 11:00]
+				// fixed point [ added 12.12.24 LK 19:00]
+				data_out <= ((mean_of_block<<FRACTIONAL_BITS) + fixed_point_quotient * (data_in - mean_of_block))>>FRACTIONAL_BITS; 
 			end
 		end
 	end
