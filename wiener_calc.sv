@@ -9,13 +9,10 @@
  * 					and calculates the pixel according to Weiner filter formula, 
  * 					for {TOTAL_SAMPLES} cycles, and goes to IDLE state again.
  *------------------------------------------------------------------------------*/
-`include "/users/eplkls/DW/DW_div.v"
-
 
 module wiener_calc #(
-	parameter DATA_WIDTH = 8,         // Width of input data
-	parameter TOTAL_SAMPLES = 64,    // Total number of samples per block (MUST be power of 2)
-	parameter FRACTIONAL_BITS = 8    // for wiener calculation
+	parameter DATA_WIDTH = 8,        // Width of input data
+	parameter TOTAL_SAMPLES = 64    // Total number of samples per block (MUST be power of 2)
 )(
 	input logic                   clk,
 	input logic                   rst_n,
@@ -30,26 +27,29 @@ module wiener_calc #(
 	output logic [31:0]            data_count // starting from 1 to TOTAL_SAMPLES
 );
 
-// the divider needs to be changed to bigger data width!!!
-
 // divider inst
+logic [4*DATA_WIDTH-1 : 0] a;
+logic [4*DATA_WIDTH-1 : 0] b;
+logic [4*DATA_WIDTH-1 : 0] quotient; // result of 16.0 / 16.0 fixed point division = 16.16 format
+logic [4*DATA_WIDTH-1 : 0] remainder;
+logic divide_by_0;
 DW_div divider (.*);
-logic  [DATA_WIDTH-1 : 0] a;
-logic  [DATA_WIDTH-1 : 0] b;
-logic  [DATA_WIDTH-1 : 0] quotient;
-logic  [DATA_WIDTH-1 : 0] remainder;
-logic 	               divide_by_0;
-logic [DATA_WIDTH + FRACTIONAL_BITS - 1:0] fixed_point_quotient;
 
-// divider inputs - regular numbers, NOT fixed point!
-assign a = noise_variance + variance_of_block;
-assign b = variance_of_block;
-// reformat result as fixed point
-assign fixed_point_quotient = (quotient << FRACTIONAL_BITS) + remainder;
+// divider inputs 
+assign a = (variance_of_block >= noise_variance) ? 32'(variance_of_block - noise_variance) << 2*DATA_WIDTH : 32'(noise_variance - variance_of_block) << 2*DATA_WIDTH; // adjust to fixed point
+assign b = (variance_of_block == 0) ? 32'b1 : 32'(variance_of_block);
+
+logic [3*DATA_WIDTH-1:0]  data_out_unclipped;
+logic quotient_sign;
+logic data_mean_diff_sign;
+logic [DATA_WIDTH-1:0] abs_data_mean_diff;
+assign quotient_sign = (variance_of_block >= noise_variance) ? 1'b1 : 1'b0; // 1 - positive, 0 - negative
+assign data_mean_diff_sign = (data_in >= mean_of_block) ? 1'b1 : 1'b0;
+assign abs_data_mean_diff = (data_mean_diff_sign) ? data_in - mean_of_block[DATA_WIDTH-1:0] : mean_of_block[DATA_WIDTH-1:0] -data_in;
 
 typedef enum logic [2:0] {
 	IDLE = 0,
-	calculate = 1
+	CALCULATE = 1
  } state_t;
 
 state_t state, next_state;
@@ -66,16 +66,16 @@ always_comb begin
 	case (state) 
 		IDLE: begin
 			if (stats_ready) begin
-				next_state = calculate;
+				next_state = CALCULATE;
 			end else begin
 				next_state = IDLE;
 			end
 		end
-		calculate: begin
+		CALCULATE: begin
 			if (data_count == TOTAL_SAMPLES) begin
 				next_state = IDLE;
 			end else begin
-				next_state = calculate;
+				next_state = CALCULATE;
 			end
 		end
 		default: begin
@@ -91,18 +91,25 @@ always_ff @(posedge clk or negedge rst_n) begin
 	if (!rst_n) begin
 		data_count<= 0;
 		data_out <= 0;
+		data_out_unclipped <= 0;
 	end else begin
-		if (state == IDLE && !next_state == calculate) begin
+		// clipping 0-255 range
+		if (data_out_unclipped < 0) data_out <= 0; 
+		else if (data_out_unclipped > 255) data_out <= 255; 
+		else data_out <= data_out_unclipped[DATA_WIDTH-1:0];
+		
+		if (state == IDLE && !next_state == CALCULATE) begin
 			data_count <= 0;
-		end else if (state == calculate || next_state == calculate) begin  // [12.12.24 LK] I wrote "next_state == calculate ",  otherwise we miss first sample!
+		end else if (state == CALCULATE || next_state == CALCULATE) begin  // [12.12.24 LK] I wrote "next_state == calculate ",  otherwise we miss first sample!
 			if (data_count == TOTAL_SAMPLES) begin 
 				data_count <= 0;
 			end else begin
 				data_count <= data_count + 1;
-				// approximation to whole numbers
-				//data_out <= mean_of_block + quotient * (data_in - mean_of_block); /// NOT SURE about quotient!!!  this is only the whole part, not fraction. [12.12.24 11:00]
-				// fixed point [ added 12.12.24 LK 19:00]
-				data_out <= ((mean_of_block<<FRACTIONAL_BITS) + fixed_point_quotient * (data_in - mean_of_block))>>FRACTIONAL_BITS; 
+				if (quotient_sign == data_mean_diff_sign) begin
+					data_out_unclipped <= mean_of_block + ((quotient * abs_data_mean_diff) >> 16);
+				end else begin
+					data_out_unclipped <= mean_of_block - ((quotient * abs_data_mean_diff) >> 16);
+				end
 			end
 		end
 	end

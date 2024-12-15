@@ -1,11 +1,6 @@
 //------------------------------------------------------------------------------
 // Testbench for noise_estimation module
 //------------------------------------------------------------------------------
-//`include "/users/eplkls/Project/design/noise_estimation_FSM.sv"
-//`include "/users/eplkls/Project/design/mean_unit.sv"
-//`include "/users/eplkls/Project/design/shift_register.sv"
-//`include "/users/eplkls/Project/design/variance_unit.sv"
-
 
 module noise_estimation_tb_more_data;
 
