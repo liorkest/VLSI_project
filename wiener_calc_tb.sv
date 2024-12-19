@@ -9,7 +9,7 @@ module wiener_calc_tb;
  
   // Parameters 
   parameter DATA_WIDTH = 8; 
-  parameter TOTAL_SAMPLES = 64; 
+  parameter TOTAL_SAMPLES = 8; 
  
   // Testbench signals 
   logic clk; 

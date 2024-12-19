@@ -30,7 +30,7 @@ logic [31:0] count;
 logic [31:0] block_count;
 logic updated_block_count;
 logic [1:0] mean_ready_counter;
-
+logic variance_ready_flag; // [19.12.24 LK added]
 
 typedef enum logic [2:0] {
 	IDLE = 0,
@@ -91,7 +91,9 @@ always_comb begin
 			end else begin
 				shift_en_1 = 0;
 				shift_en_2 = 1;
-				
+				if (variance_ready_flag) begin // LK [19.12.24]  to fix a
+					shift_en_2 = 1;
+				end
 				next_state = EMPTY_BUFFER;
 			end
 		end
@@ -128,6 +130,7 @@ always_ff @(posedge clk or negedge rst_n) begin
 		block_count <= 0;
 		updated_block_count <= 0;
 		mean_ready_counter <= 0;
+		variance_ready_flag <=0; // LK [19.12.24] 
 	end else begin
 		if (state == IDLE) begin
 			count <= 0;
@@ -147,6 +150,7 @@ always_ff @(posedge clk or negedge rst_n) begin
 				block_count <= block_count + 1;
 				updated_block_count <= 1;
 				count <= 0;
+				variance_ready_flag <=0; // LK [19.12.24] 
 			end
 			
 			if (mean_ready) begin
@@ -158,6 +162,10 @@ always_ff @(posedge clk or negedge rst_n) begin
 				mean_ready_counter <= 0;
 			end	
 		end else if (state == EMPTY_BUFFER) begin
+			// LK [19.12.24] 
+			if (variance_ready) begin
+				variance_ready_flag <= 1; 
+			end
 			if (count == TOTAL_SAMPLES) begin
 				count <= 0;
 			end else begin

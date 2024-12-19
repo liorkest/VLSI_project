@@ -63,7 +63,7 @@ module wiener_1_channel_tb;
 	  
 	  if (i!=0) begin
 		  //wait(mean_ready == 1);
-		  #40;
+		  #40; /// critical to be >=40!!
 	  end 
 	  start_data = 1;
 	  

@@ -72,7 +72,7 @@ always_comb begin
 			end
 		end
 		CALCULATE: begin
-			if (data_count == TOTAL_SAMPLES + 2) begin  // +2 due to delay by 1 cycle of data_out
+			if (data_count > TOTAL_SAMPLES + 1) begin  // +1 due to delay by 2 cycles of data_out
 				next_state = IDLE;
 			end else begin
 				next_state = CALCULATE;
@@ -85,6 +85,7 @@ always_comb begin
 end
 
 
+
 // Data processing logic
 always_ff @(posedge clk or negedge rst_n) begin
 	if (!rst_n) begin
@@ -92,15 +93,10 @@ always_ff @(posedge clk or negedge rst_n) begin
 		data_out <= 0;
 		data_out_unclipped <= 0;
 	end else begin
-		// clipping 0-255 range
-		if (data_out_unclipped < 0) data_out <= 0; 
-		else if (data_out_unclipped > 255) data_out <= 255; 
-		else data_out <= data_out_unclipped[DATA_WIDTH-1:0];
-		
 		if (state == IDLE && !next_state == CALCULATE) begin
 			data_count <= 0;
-		end else if (state == CALCULATE || next_state == CALCULATE) begin  // [12.12.24 LK] I wrote "next_state == calculate ",  otherwise we miss first sample!
-			if (data_count == TOTAL_SAMPLES + 1) begin // +1 due to delay by 1 cycle of data_out
+		end else if (state == CALCULATE ) begin  // [19.12.24 LK] changed back
+			if (data_count > TOTAL_SAMPLES + 1) begin // +1 due to delay by 2 cycles of data_out
 				data_count <= 0;
 			end else begin
 				data_count <= data_count + 1;
@@ -110,6 +106,15 @@ always_ff @(posedge clk or negedge rst_n) begin
 					data_out_unclipped <= mean_of_block - ((quotient * abs_data_mean_diff) >> 16);
 				end
 			end
+		end
+		
+		// clipping 0-255 range            // [19.12.24] moved to end of code
+		if (data_out_unclipped < 0) begin
+			data_out = 0; 
+		end	else if (data_out_unclipped > 255) begin
+				data_out = 255; 
+		end else begin
+			data_out = data_out_unclipped[DATA_WIDTH-1:0];
 		end
 	end
 end
