@@ -29,7 +29,7 @@ module wiener_block_stats #(
 
 
 // wires from FSM
-logic shift_en, shift_reg_rst_n, variance_start_of_data;
+logic shift_en_1, shift_en_2, shift_en_mean, shift_reg_rst_n, variance_start_of_data;
 logic mean_ready; // added LK [12.12.24]
 // interconnect wires between units
 logic [2*DATA_WIDTH-1:0]  block_mean;
@@ -62,9 +62,11 @@ wiener_block_stats_FSM #(.DATA_WIDTH(DATA_WIDTH),
 	.mean_ready(mean_ready),
 	.variance_ready(variance_ready),
 	.blocks_per_frame(blocks_per_frame),
-	.shift_en(shift_en),
+	.shift_en_1(shift_en_1),
+	.shift_en_2(shift_en_2),
 	.shift_reg_rst_n(shift_reg_rst_n),
-	.variance_start_of_data(variance_start_of_data)
+	.variance_start_of_data(variance_start_of_data),
+	.shift_en_mean(shift_en_mean)
 );
 
 
@@ -89,7 +91,7 @@ shift_register#(
 	.clk(clk),
 	.rst_n(shift_reg_rst_n),
 	.serial_in(data_in),
-	.shift_en(shift_en),
+	.shift_en(shift_en_1),
 
 	.serial_out(serial_lvl_1) // renamed 12.12.24 LK
 );
@@ -102,7 +104,7 @@ shift_register#(
 	.clk(clk),
 	.rst_n(shift_reg_rst_n),
 	.serial_in(serial_lvl_1), // LS, FYI - the shift registers are concatenated!
-	.shift_en(shift_en),
+	.shift_en(shift_en_2),
 
 	.serial_out(data_out)
 );
@@ -115,7 +117,7 @@ shift_register#(
 	.clk(clk),
 	.rst_n(shift_reg_rst_n | start_of_frame),
 	.serial_in(block_mean),
-	.shift_en(start_data),
+	.shift_en(shift_en_mean),
 	.serial_out(mean_out)
 );
 

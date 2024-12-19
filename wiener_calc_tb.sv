@@ -83,7 +83,47 @@ module wiener_calc_tb;
 	  @(posedge clk); 
 	  data_in = data_in + 1; // Increment pixel value for testing 
 	end 
+	
+	#30;
+	
+	// Test case 2: Simple computation 
+	@(posedge clk)
+	stats_ready = 1; 
+	mean_of_block = 16'h00fd; // Example mean value 
+	variance_of_block = 16'h0040; // Example variance value 
+	noise_variance = 16'h0030; // Example noise variance value 
+	data_in = 8'hC0; // Example pixel value 
+	blocks_per_frame = 1; 
+	
+	@(posedge clk); 
+	stats_ready = 0; 
  
+	// Simulate TOTAL_SAMPLES cycles of data processing 
+	repeat (TOTAL_SAMPLES) begin 
+	  @(posedge clk); 
+	  data_in = data_in + 3; // Increment pixel value for testing 
+	end 
+	
+	#30;
+ 
+	// Test case 3: Simple computation 
+	@(posedge clk)
+	stats_ready = 1; 
+	mean_of_block = 16'h0080; // Example mean value 
+	variance_of_block = 16'h0050; // Example variance value 
+	noise_variance = 16'h0040; // Example noise variance value 
+	data_in = 8'hC0; // Example pixel value 
+	blocks_per_frame = 1; 
+	
+	@(posedge clk); 
+	stats_ready = 0; 
+ 
+	// Simulate TOTAL_SAMPLES cycles of data processing 
+	repeat (TOTAL_SAMPLES) begin 
+	  @(posedge clk); 
+	  data_in = data_in + 1; // Increment pixel value for testing 
+	end 
+	
 	// Check final outputs 
 	@(posedge clk); 
 	$display("Final data_out: %h", data_out); 

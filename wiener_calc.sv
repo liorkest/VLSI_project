@@ -72,7 +72,7 @@ always_comb begin
 			end
 		end
 		CALCULATE: begin
-			if (data_count == TOTAL_SAMPLES) begin
+			if (data_count == TOTAL_SAMPLES + 2) begin  // +2 due to delay by 1 cycle of data_out
 				next_state = IDLE;
 			end else begin
 				next_state = CALCULATE;
@@ -83,7 +83,6 @@ always_comb begin
 		end
 	endcase
 end
-
 
 
 // Data processing logic
@@ -101,7 +100,7 @@ always_ff @(posedge clk or negedge rst_n) begin
 		if (state == IDLE && !next_state == CALCULATE) begin
 			data_count <= 0;
 		end else if (state == CALCULATE || next_state == CALCULATE) begin  // [12.12.24 LK] I wrote "next_state == calculate ",  otherwise we miss first sample!
-			if (data_count == TOTAL_SAMPLES) begin 
+			if (data_count == TOTAL_SAMPLES + 1) begin // +1 due to delay by 1 cycle of data_out
 				data_count <= 0;
 			end else begin
 				data_count <= data_count + 1;
