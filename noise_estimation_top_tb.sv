@@ -29,7 +29,8 @@ module noise_estimation_tb;
     initial begin
         clk = 0;
         forever #5 clk = ~clk; // 100 MHz clock
-    end
+	end
+	
 
     // DUT instantiation
     noise_estimation #(
