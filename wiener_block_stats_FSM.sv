@@ -91,6 +91,7 @@ always_comb begin
 			end else begin
 				shift_en_1 = 0;
 				shift_en_2 = 1;
+				
 				next_state = EMPTY_BUFFER;
 			end
 		end
@@ -100,14 +101,24 @@ always_comb begin
 	endcase
 end
 
+/* commented out [LK 19.12.24]
 always_comb begin
-	if ((state != IDLE && state != WAIT_FOR_MEAN) && (count == 0)) begin
+	// if ((state != IDLE && state != WAIT_FOR_MEAN) && (count == 0)) begin   
 		shift_en_mean = 1;
 	end else begin
 		shift_en_mean = 0;
 	end
 end
+*/
 
+// added by [LK 19.12.24]
+always_comb begin
+	if (mean_ready && mean_ready_counter == 1) begin   
+		shift_en_mean = 1;
+	end else begin
+		shift_en_mean = 0;
+	end
+end
 
 // Data processing logic
 always_ff @(posedge clk or negedge rst_n) begin
