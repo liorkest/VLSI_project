@@ -24,8 +24,11 @@ module wiener_calc #(
 	input logic [31:0]            blocks_per_frame,
 	// outputs
 	output logic  [DATA_WIDTH-1:0] data_out,
-	output logic [31:0]            data_count // starting from 1 to TOTAL_SAMPLES
+	output logic [31:0]            data_count_out // starting from 1 to TOTAL_SAMPLES
 );
+
+logic [31:0]            data_count ;
+
 
 // divider inst
 logic [4*DATA_WIDTH-1 : 0] a;
@@ -90,6 +93,7 @@ end
 always_ff @(posedge clk or negedge rst_n) begin
 	if (!rst_n) begin
 		data_count<= 0;
+		data_count_out <=0;
 		data_out <= 0;
 		data_out_unclipped <= 0;
 	end else begin
@@ -100,6 +104,7 @@ always_ff @(posedge clk or negedge rst_n) begin
 				data_count <= 0;
 			end else begin
 				data_count <= data_count + 1;
+				data_count_out <= data_count; // [LK 19.12.24] to delay by one cycle, so that output will be synchronized.
 				if (quotient_sign == data_mean_diff_sign) begin
 					data_out_unclipped <= mean_of_block + ((quotient * abs_data_mean_diff) >> 16);
 				end else begin
@@ -110,11 +115,11 @@ always_ff @(posedge clk or negedge rst_n) begin
 		
 		// clipping 0-255 range            // [19.12.24] moved to end of code
 		if (data_out_unclipped < 0) begin
-			data_out = 0; 
+			data_out <= 0; 
 		end	else if (data_out_unclipped > 255) begin
-				data_out = 255; 
+				data_out <= 255; 
 		end else begin
-			data_out = data_out_unclipped[DATA_WIDTH-1:0];
+			data_out <= data_out_unclipped[DATA_WIDTH-1:0];
 		end
 	end
 end

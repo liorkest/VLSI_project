@@ -5,11 +5,11 @@ Creation Date: Dec 12, 2024
 ------------------------------------------------------------------------------*/ 
  
  
-module wiener_calc_tb; 
+module wiener_calc_tb_framestream; 
  
   // Parameters 
   parameter DATA_WIDTH = 8; 
-  parameter TOTAL_SAMPLES = 8; 
+  parameter TOTAL_SAMPLES = 64; 
  
   // Testbench signals 
   logic clk; 
@@ -38,7 +38,7 @@ module wiener_calc_tb;
 	.data_in(data_in), 
 	.blocks_per_frame(blocks_per_frame), 
 	.data_out(data_out), 
-	.data_count_out(data_count) 
+	.data_count(data_count) 
   ); 
  
   // Clock generation 
@@ -83,47 +83,7 @@ module wiener_calc_tb;
 	  @(posedge clk); 
 	  data_in = data_in + 1; // Increment pixel value for testing 
 	end 
-	
-	#30;
-	
-	// Test case 2: Simple computation 
-	@(posedge clk)
-	stats_ready = 1; 
-	mean_of_block = 16'h00fd; // Example mean value 
-	variance_of_block = 16'h0040; // Example variance value 
-	noise_variance = 16'h0030; // Example noise variance value 
-	data_in = 8'hC0; // Example pixel value 
-	blocks_per_frame = 1; 
-	
-	@(posedge clk); 
-	stats_ready = 0; 
  
-	// Simulate TOTAL_SAMPLES cycles of data processing 
-	repeat (TOTAL_SAMPLES) begin 
-	  @(posedge clk); 
-	  data_in = data_in + 3; // Increment pixel value for testing 
-	end 
-	
-	#30;
- 
-	// Test case 3: Simple computation 
-	@(posedge clk)
-	stats_ready = 1; 
-	mean_of_block = 16'h0080; // Example mean value 
-	variance_of_block = 16'h0050; // Example variance value 
-	noise_variance = 16'h0040; // Example noise variance value 
-	data_in = 8'hC0; // Example pixel value 
-	blocks_per_frame = 1; 
-	
-	@(posedge clk); 
-	stats_ready = 0; 
- 
-	// Simulate TOTAL_SAMPLES cycles of data processing 
-	repeat (TOTAL_SAMPLES) begin 
-	  @(posedge clk); 
-	  data_in = data_in + 1; // Increment pixel value for testing 
-	end 
-	
 	// Check final outputs 
 	@(posedge clk); 
 	$display("Final data_out: %h", data_out); 

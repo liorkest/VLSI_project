@@ -90,8 +90,7 @@ always_comb begin
 				next_state = IDLE;
 			end else begin
 				shift_en_1 = 0;
-				shift_en_2 = 1;
-				if (variance_ready_flag) begin // LK [19.12.24]  to fix a
+				if (variance_ready_flag) begin // LK [19.12.24]  to fix
 					shift_en_2 = 1;
 				end
 				next_state = EMPTY_BUFFER;
