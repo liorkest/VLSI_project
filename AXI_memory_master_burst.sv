@@ -59,7 +59,7 @@ module AXI_memory_master_burst #
 	input  logic                    start_write,
 	input  logic [ID_WIDTH-1:0]     write_id,
 	input  logic [ADDR_WIDTH-1:0]   write_addr,
-	input  logic [7:0]              write_len,
+	input  logic [31:0]             write_len,
 	input  logic [2:0]              write_size,
 	input  logic [1:0]              write_burst,
 	input  logic [DATA_WIDTH-1:0]   write_data,
@@ -67,7 +67,7 @@ module AXI_memory_master_burst #
 	input  logic                    start_read,
 	input  logic [ID_WIDTH-1:0]     read_id,
 	input  logic [ADDR_WIDTH-1:0]   read_addr,
-	input  logic [7:0]              read_len,
+	input  logic [31:0]             read_len,
 	input  logic [2:0]              read_size,
 	input  logic [1:0]              read_burst
 );

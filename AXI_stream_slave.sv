@@ -11,17 +11,17 @@ module AXI_stream_slave #(
 	// parameter TID_WIDTH  = 4,  // Width of the AXI stream ID             // CHECK THIS!!
 	// parameter TDEST_WIDTH = 4  // Width of the AXI stream destination
 	)(
-	input  wire                       clk,         // Clock signal
-	input  wire                       rst_n,       // Active-low reset signal
+	input  logic                       clk,         // Clock signal
+	input  logic                       rst_n,       // Active-low reset signal
 
 	// AXI Stream slave interface
-	input  wire [DATA_WIDTH-1:0]      s_axis_tdata, // Data signal
-	input  wire                       s_axis_tvalid,// Valid signal
+	input  logic [DATA_WIDTH-1:0]      s_axis_tdata, // Data signal
+	input  logic                       s_axis_tvalid,// Valid signal
 	output logic                      s_axis_tready,// Ready signal           
-	input  wire                       s_axis_tlast, // Last signal - end of line
-	input  wire                       s_axis_tuser // User custom signal - start of frame
-	// input  wire [TID_WIDTH-1:0]       s_axis_tid,   // ID signal
-	// input  wire [TDEST_WIDTH-1:0]     s_axis_tdest  // Destination signal
+	input  logic                       s_axis_tlast, // Last signal - end of line
+	input  logic                       s_axis_tuser // User custom signal - start of frame
+	// input  logic [TID_WIDTH-1:0]       s_axis_tid,   // ID signal
+	// input  logic [TDEST_WIDTH-1:0]     s_axis_tdest  // Destination signal
 	);
 
 	// Internal signals

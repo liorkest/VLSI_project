@@ -1,12 +1,12 @@
 /*------------------------------------------------------------------------------
- * File          : AXI_memory_master_test1.sv
+ * File          : AXI_memory_master_burst_tb.sv
  * Project       : RTL
  * Author        : eplkls
  * Creation date : Dec 22, 2024
  * Description   : Testbench for AXI Memory Master with Burst Support
  *------------------------------------------------------------------------------*/
 
-module AXI_memory_master_test2;
+module AXI_memory_master_burst_test;
 
 // Parameters
 parameter ADDR_WIDTH = 32;
