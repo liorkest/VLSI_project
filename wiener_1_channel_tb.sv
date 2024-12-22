@@ -21,7 +21,7 @@ module wiener_1_channel_tb;
 	logic [DATA_WIDTH-1:0]  data_in;
 	logic                   start_data;
 	logic [31:0]            blocks_per_frame;
-	logic [2*DATA_WIDTH-1:0] noise_variance = 16'd5;
+	logic [2*DATA_WIDTH-1:0] noise_variance = 16'd6133;
 	
 	logic [DATA_WIDTH-1:0] data_out; 
 	logic [31:0] data_count; 
@@ -104,7 +104,7 @@ module wiener_1_channel_tb;
 	  end
 
 	  // Finish simulation
-	  #250;
+	  #300;
 	  $finish;
   end
 

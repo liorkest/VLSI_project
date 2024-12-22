@@ -104,7 +104,7 @@ module wiener_3_channel_tb;
 	  end
 
 	  // Finish simulation
-	  #300;
+	  #350;
 	  $finish;
   end
 

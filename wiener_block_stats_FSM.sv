@@ -86,7 +86,7 @@ always_comb begin
 
 		end
 		EMPTY_BUFFER: begin
-			if (count == TOTAL_SAMPLES) begin
+			if (count == TOTAL_SAMPLES+2) begin
 				next_state = IDLE;
 			end else begin
 				shift_en_1 = 0;
@@ -101,16 +101,6 @@ always_comb begin
 		end
 	endcase
 end
-
-/* commented out [LK 19.12.24]
-always_comb begin
-	// if ((state != IDLE && state != WAIT_FOR_MEAN) && (count == 0)) begin   
-		shift_en_mean = 1;
-	end else begin
-		shift_en_mean = 0;
-	end
-end
-*/
 
 // added by [LK 19.12.24]
 always_comb begin
@@ -165,7 +155,7 @@ always_ff @(posedge clk or negedge rst_n) begin
 			if (variance_ready) begin
 				variance_ready_flag <= 1; 
 			end
-			if (count == TOTAL_SAMPLES) begin
+			if (count == TOTAL_SAMPLES+2) begin
 				count <= 0;
 			end else begin
 				count <= count + 1;
