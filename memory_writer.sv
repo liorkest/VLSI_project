@@ -82,6 +82,7 @@ always_ff @(posedge clk or negedge rst_n) begin
 			frame_ready <= 0;
 			if(next_state == RECEIVE) begin // starting new frame
 				write_addr <= base_addr;
+				pixels_in_line_count <= pixels_in_line_count + 1;
 			end
 			
 		end else if (state == RECEIVE) begin
@@ -90,9 +91,6 @@ always_ff @(posedge clk or negedge rst_n) begin
 				line_count <= line_count + 1;
 			end 
 			
-			if (line_count == frame_height - 1 && frame_count == 3) begin
-				frame_count <= 0;
-			end
 			if (s_axis_tlast) begin
 				pixels_in_line_count <= 0;
 			end
@@ -101,6 +99,10 @@ always_ff @(posedge clk or negedge rst_n) begin
 			base_addr_out <= base_addr;
 			line_count <= 0;
 			frame_count <= frame_count + 1;
+			
+			if (line_count == frame_height && frame_count == 2) begin
+				frame_count <= 0;
+			end
 		end
 		
 	end
@@ -137,9 +139,6 @@ always_comb begin
 		default: next_state = IDLE;
 	endcase
 end
-
-
-
 
 
 endmodule

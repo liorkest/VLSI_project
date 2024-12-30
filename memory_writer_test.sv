@@ -89,9 +89,9 @@ module memory_writer_tb;
 			// End transaction
 			s_axis_tuser = 1'b0;
 			s_axis_tvalid = 1'b0;
-			#5;
+			#1;
 			s_axis_tlast = 1'b0;
-			#5;
+			#9;
 			#20;
 		end
 		#50;
@@ -104,9 +104,9 @@ module memory_writer_tb;
 		s_axis_tdata = data;
 		s_axis_tvalid = 1'b1;
 		s_axis_tuser = user;
-		#5;
+		#1;
 		s_axis_tlast = last;
-		#5;
+		#9;
 		wait(s_axis_tready);
 
 
