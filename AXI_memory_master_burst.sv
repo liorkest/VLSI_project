@@ -91,8 +91,10 @@ always_ff @(posedge clk or negedge resetn) begin
 		write_burst_addr <= 0;
 	end else begin
 		write_state <= write_state_next;
-		if (write_state == WRITE_DATA && wready && wvalid) begin
-			if (write_beat_count < write_len) begin
+		if (write_state == WRITE_IDLE) begin
+			write_burst_addr <= write_addr;
+		end else if (write_state == WRITE_DATA) begin
+			if (wready && wvalid && write_beat_count < write_len) begin
 				write_beat_count <= write_beat_count + 1;
 				write_burst_addr <= write_burst_addr + 1;  // Increment by 2^write_size
 			end else begin

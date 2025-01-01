@@ -42,6 +42,7 @@ logic [31:0] line_count;
 logic [15:0] pixels_in_line_count;
 assign base_addr = pixels_per_frame * frame_count;
 logic s_axis_tready_logic;
+logic tdata_shift_en; // [LK 01.01.25]
 // Instantiate the AXI_stream_slave module
 assign s_axis_tready = s_axis_tready_logic;
 AXI_stream_slave #(
@@ -56,7 +57,19 @@ AXI_stream_slave #(
 	.s_axis_tuser(s_axis_tuser)
 );
 
-
+// Instantiate the shift register [LK 01.01.25]
+shift_register#(
+	.BYTE_WIDTH(32),
+	.DEPTH(3)
+) tdata_shift_reg (
+	.clk(clk),
+	.rst_n(rst_n),
+	.serial_in(s_axis_tdata),
+	.shift_en(tdata_shift_en),
+	.serial_out(write_data)
+);
+		
+		
 // State machine for handling AXI Stream transactions
 typedef enum logic [1:0] {
 	IDLE,
@@ -81,8 +94,9 @@ always_ff @(posedge clk or negedge rst_n) begin
 		
 		if (state == IDLE) begin
 			frame_ready <= 0;
+			base_addr_out <= base_addr;
+			write_addr <= base_addr;
 			if(next_state == RECEIVE) begin // starting new frame
-				write_addr <= base_addr;
 				pixels_in_line_count <= pixels_in_line_count + 1;
 			end
 			
@@ -97,13 +111,12 @@ always_ff @(posedge clk or negedge rst_n) begin
 			end
 		end else if (state == FRAME_READY) begin
 			frame_ready <= 1;
-			base_addr_out <= base_addr;
 			line_count <= 0;
 			frame_count <= frame_count + 1;
-			
 			if (line_count == frame_height && frame_count == 2) begin
 				frame_count <= 0;
 			end
+			
 		end
 		
 	end
@@ -111,30 +124,40 @@ end
 
 
 always_comb begin
-	next_state = state;
+	// next_state = state;  /// [LK 01.01.25 OMG it is wrong!]
 	start_write = 0;
 	write_strb = 4'b1111;
 	write_burst = 1;
-	write_data = 0;
+	// write_data = 0; commented out [LK 01.01.25]
 	write_size = 1;
 	write_len = pixels_per_frame;
+	tdata_shift_en = 0;//[LK 01.01.25]
 	case (state)
 		IDLE: begin
 			if (s_axis_tready_logic) begin
 				next_state = RECEIVE;
 				start_write = 1;
+				tdata_shift_en = 1;//[LK 01.01.25]
 			end
 		end
 
 		RECEIVE: begin
-			write_data = s_axis_tdata;
+			// write_data = s_axis_tdata; [removed LK 1.1.25]
+			tdata_shift_en = 1;//[LK 01.01.25]
+			
+			/*              // [LK 01.01.25] changed because data is now at falling edge 
 			if (!s_axis_tvalid && line_count == frame_height-1 && pixels_in_line_count == frame_width-1) begin
+				next_state = FRAME_READY;
+			end
+			*/
+			if (!s_axis_tvalid && line_count == frame_height) begin
 				next_state = FRAME_READY;
 			end
 		end
 		
 		FRAME_READY: begin
 			next_state = IDLE;
+			tdata_shift_en = 1;//[LK 01.01.25]
 		end
 
 		default: next_state = IDLE;

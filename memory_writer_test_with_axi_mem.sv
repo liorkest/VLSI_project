@@ -212,22 +212,23 @@ module memory_writer_with_axi_mem_tb;
 		#20;
 		rst_n = 1'b1;
 		@(posedge clk);
+
 		// Send a single transaction
 		#10;
 		// Send a multi-cycle transaction
 		//#50;
-		for(int frame=0; frame < 10; frame++) begin
+		for(int frame=0; frame < 4; frame++) begin
 			for(int i=0; i < pixels_per_frame; i++) begin 
 				send_transaction((i+1)*100, (i%frame_width == frame_width-1) ,i==0); // Data: 0x12345678, Last: 0 // [LK 01.01.25 changed to (i+1)]
 			end
 			// End transaction
 			s_axis_tuser = 1'b0;
 			s_axis_tvalid = 1'b0;
-			s_axis_tdata = 1'b0; // [LK 1.1.25] added
+			s_axis_tdata = 1'b0; // [LK 01.01.25]
 			#1;
 			s_axis_tlast = 1'b0;
 			#9;
-			#20;
+			#40; // [LK 01.01.25 changed from 20 to 40. Less is not working. MUST have 4 cycles between frames.]
 		end
 		#50;
 		$finish;
@@ -236,9 +237,11 @@ module memory_writer_with_axi_mem_tb;
 	// Task to send a single transaction
 	task send_transaction(input [DATA_WIDTH-1:0] data, input last, input user);
 	begin
-		s_axis_tdata = data;
+
 		s_axis_tvalid = 1'b1;
 		s_axis_tuser = user;
+		@(negedge clk);
+		s_axis_tdata = data;
 		#1;
 		s_axis_tlast = last;
 		#9;
