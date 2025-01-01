@@ -61,7 +61,7 @@ wire rready;
 reg start_write;
 reg [ID_WIDTH-1:0] write_id;
 reg [ADDR_WIDTH-1:0] write_addr;
-reg [7:0] write_len;
+reg [31:0] write_len;
 reg [2:0] write_size;
 reg [1:0] write_burst;
 reg [DATA_WIDTH-1:0] write_data;
@@ -69,7 +69,7 @@ reg [DATA_WIDTH/8-1:0] write_strb;
 reg start_read;
 reg [ID_WIDTH-1:0] read_id;
 reg [ADDR_WIDTH-1:0] read_addr;
-reg [7:0] read_len;
+reg [31:0] read_len;
 reg [2:0] read_size;
 reg [1:0] read_burst;
 
