@@ -72,6 +72,7 @@ reg [ADDR_WIDTH-1:0] read_addr;
 reg [31:0] read_len;
 reg [2:0] read_size;
 reg [1:0] read_burst;
+reg [31:0] read_data_count; // [LK 01.01.25]
 
 // Instantiate the DUT (Device Under Test)
 AXI_memory_master_burst #(
@@ -174,7 +175,7 @@ initial begin
 	#20;
 	// Burst Read Transaction
 	AXI_memory_master_read_burst(4'hA, 32'h0, 8, 3'b010, 2'b01);
-	#50;
+	#200;
 	// Finish simulation
 	$finish;
 end
@@ -192,18 +193,22 @@ begin
 	start_read = 1;
 	read_id = id;
 	read_addr = addr;
-	read_len = len - 1;
+	read_len = len; // [LK 01.01.25] 
 	read_size = size;
 	read_burst = burst;
 	wait(arready);
-	for (i = 0; i < len; i = i + 1) begin
+	start_read = 0;
+	for (i = 0; i <= len; i = i + 1) begin
+		rlast = (i==len) ;		// [LK 01.01.25] this is the fix of rlast:
+
 		wait(rvalid);
 		$display("Read Data: %h", rdata);
-		if (rlast) begin
+		/*if (rlast) begin // [LK 01.01.25] this is wrong!!! it should come from TB to dut!
 			break;
-		end
+		end*/
+		#10;
 	end
-	start_read = 0;
+	rlast = 0;
 end
 endtask
 
@@ -223,35 +228,18 @@ begin
 	write_len = len - 1;
 	write_size = size;
 	write_burst = burst;
-	#40;
+	#35; // [LK 01.01.25] changed fro 40 to 35
 	for (i = 0; i < len; i = i + 1) begin
-		write_data = $urandom(3) + i*50;
+		write_data = 10 + i; // [LK 01.01.25 changed to be more readable]
 		write_strb = 4'b1111;
 		#10;
+		start_write = 0;
 		//wait(wready);
 	end
 	start_write = 0;
 end
 endtask
 
-// Monitor signals
-always @(posedge clk) begin
-	if (awvalid && awready) begin
-		$display("Write Address Channel: ID=%0d, Addr=%0h, Len=%0d, Size=%0d, Burst=%0d", awid, awaddr, awlen, awsize, awburst);
-	end
-	if (wvalid && wready) begin
-		$display("Write Data Channel: Data=%0h, Strb=%0b, Last=%0b", wdata, wstrb, wlast);
-	end
-	if (bvalid && bready) begin
-		$display("Write Response Channel: ID=%0d, Resp=%0d", bid, bresp);
-	end
-	if (arvalid && arready) begin
-		$display("Read Address Channel: ID=%0d, Addr=%0h, Len=%0d, Size=%0d, Burst=%0d", arid, araddr, arlen, arsize, arburst);
-	end
-	if (rvalid && rready) begin
-		$display("Read Data Channel: ID=%0d, Data=%0h, Resp=%0d, Last=%0b", rid, rdata, rresp, rlast);
-	end
-end
 
 // AXI Slave Write Response Simulation
 always @(posedge clk) begin
@@ -294,8 +282,8 @@ always @(posedge clk) begin
 		arready <= 0;
 		rvalid <= 0;
 		rdata <= 0;
-		rlast <= 0;
 		read_len <= 0;  // Make sure read_len is reset
+		read_data_count <= 0; // [LK 01.01.24]
 	end else begin
 		// Simulate arready
 		if (arvalid && !arready) begin
@@ -309,17 +297,21 @@ always @(posedge clk) begin
 			rvalid <= 1;  // Keep rvalid high during the burst
 		end else if (rready && rvalid && rlast) begin
 			rvalid <= 0;  // Only deassert rvalid once the burst is finished
-			rlast <= 0;   // Reset rlast
+			// rlast <= 0;   // Reset rlast
+			read_data_count <= 0; // [LK 01.01.24]
 		end
 		
 		if (rvalid) begin			
 			rdata <= memory[araddr[7:0]];  // Provide read data from memory
+			read_data_count <= read_data_count + 1; // [LK 01.01.24]
 			// Set rlast to 1 when it's the last read in the burst
-			rlast <= (read_len == 0);
-
+			//rlast <= (read_len == 0); [LK 01.01.24]
+			
+			/* [LK 01.01.24] remove this -> is stopped the read operation. 
 			// Decrement the read length as the burst progresses
 			if (read_len > 0) 
 				read_len <= read_len - 1;
+				*/
 		end 
 	end
 end

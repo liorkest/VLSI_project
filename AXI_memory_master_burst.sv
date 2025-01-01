@@ -55,7 +55,7 @@ module AXI_memory_master_burst #
 	input  logic                    rvalid,
 	output logic                    rready,
 
-	// Control signals
+	// Control signals - to receive data to stream
 	input  logic                    start_write,
 	input  logic [ID_WIDTH-1:0]     write_id,
 	input  logic [ADDR_WIDTH-1:0]   write_addr,

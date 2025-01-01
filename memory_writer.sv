@@ -78,6 +78,7 @@ always_ff @(posedge clk or negedge rst_n) begin
 		base_addr_out <= 0;
 	end else begin
 		state <= next_state;
+		
 		if (state == IDLE) begin
 			frame_ready <= 0;
 			if(next_state == RECEIVE) begin // starting new frame

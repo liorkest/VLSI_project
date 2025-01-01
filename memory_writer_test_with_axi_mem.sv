@@ -57,7 +57,8 @@ module memory_writer_with_axi_mem_tb;
 	logic [1:0] bresp;
 	logic bvalid;
 	logic bready;
-
+	
+	/* [commented by LK 01.12.25]
 	// Read Address Channel
 	logic [ID_WIDTH-1:0] arid;
 	logic [ADDR_WIDTH-1:0] araddr;
@@ -74,15 +75,18 @@ module memory_writer_with_axi_mem_tb;
 	logic rlast;
 	logic rvalid;
 	logic rready;
-
+	*/ 
+	
 	// Control signals
 	logic [ID_WIDTH-1:0] write_id=0;
+	/* [commented by LK 01.12.25]
 	logic start_read;
 	logic [ID_WIDTH-1:0] read_id;
 	logic [ADDR_WIDTH-1:0] read_addr;
 	logic [31:0] read_len;
 	logic [2:0] read_size;
 	logic [1:0] read_burst;
+	*/
 
 	// Instantiate the AXI_stream_slave module
 	memory_writer #(
@@ -139,6 +143,7 @@ module memory_writer_with_axi_mem_tb;
 		.bvalid(bvalid),
 		.bready(bready),
 		
+		/* [commented by LK 01.12.25]
 		// Read Address Channel
 		.arid(arid),
 		.araddr(araddr),
@@ -155,6 +160,7 @@ module memory_writer_with_axi_mem_tb;
 		.rlast(rlast),
 		.rvalid(rvalid),
 		.rready(rready),
+		*/
 		
 		// Control signals
 		.start_write(start_write),
@@ -165,12 +171,14 @@ module memory_writer_with_axi_mem_tb;
 		.write_burst(write_burst),
 		.write_data(write_data),
 		.write_strb(write_strb),
-		.start_read(start_read),
-		.read_id(read_id),
+		.start_read(start_read)
+		/* [commented by LK 01.12.25]
+		, .read_id(read_id),
 		.read_addr(read_addr),
 		.read_len(read_len),
 		.read_size(read_size),
 		.read_burst(read_burst)
+		*/
 	);
 
 	// Clock generation
@@ -190,13 +198,16 @@ module memory_writer_with_axi_mem_tb;
 		s_axis_tvalid = 1'b0;
 		s_axis_tlast = 1'b0;
 		s_axis_tuser = 1'b0;
+		
+		/* [commented by LK 01.12.25]
 		start_read = 0;
 		read_id = 0;
 		read_addr = 0;
 		read_len = 0;
 		read_size = 0;
 		read_burst = 0;
-
+		*/
+		
 		// Reset the system
 		#20;
 		rst_n = 1'b1;
@@ -206,12 +217,13 @@ module memory_writer_with_axi_mem_tb;
 		// Send a multi-cycle transaction
 		//#50;
 		for(int frame=0; frame < 10; frame++) begin
-			for(int i=0; i < pixels_per_frame; i++) begin
-				send_transaction(i*100, (i%frame_width == frame_width-1) ,i==0); // Data: 0x12345678, Last: 0
+			for(int i=0; i < pixels_per_frame; i++) begin 
+				send_transaction((i+1)*100, (i%frame_width == frame_width-1) ,i==0); // Data: 0x12345678, Last: 0 // [LK 01.01.25 changed to (i+1)]
 			end
 			// End transaction
 			s_axis_tuser = 1'b0;
 			s_axis_tvalid = 1'b0;
+			s_axis_tdata = 1'b0; // [LK 1.1.25] added
 			#1;
 			s_axis_tlast = 1'b0;
 			#9;
@@ -236,7 +248,7 @@ module memory_writer_with_axi_mem_tb;
 	end
 	endtask
 	
-	// AXI Slave Write Response Simulation
+	// AXI Slave Write Simulation
 	always @(posedge clk) begin
 		if (!rst_n) begin
 			awready <= 0;
@@ -271,6 +283,7 @@ module memory_writer_with_axi_mem_tb;
 		end
 	end
 	
+	/* [commented by LK 01.12.25]
 	// AXI Slave Read Response Simulation
 	always @(posedge clk) begin
 		if (!rst_n) begin
@@ -306,5 +319,6 @@ module memory_writer_with_axi_mem_tb;
 			end 
 		end
 	end
+	*/
 
 endmodule
