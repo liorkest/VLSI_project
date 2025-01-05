@@ -6,14 +6,13 @@
  * Description   : Testbench for AXI Memory Master with Burst Support
  *------------------------------------------------------------------------------*/
 
-
-module AXI_memory_master_burst_test;
+module AXI_memory_master_burst_test_LK;
 
 // Parameters
 parameter ADDR_WIDTH = 32;
 parameter DATA_WIDTH = 32;
 parameter ID_WIDTH = 4;
-parameter MEM_SIZE = 10;
+parameter MEM_SIZE = 128;
 
 // Signals
 reg clk;
@@ -73,6 +72,7 @@ reg [ADDR_WIDTH-1:0] read_addr;
 reg [31:0] read_len;
 reg [2:0] read_size;
 reg [1:0] read_burst;
+reg [31:0] read_data_count; // [LK 01.01.25]
 
 // Instantiate the DUT (Device Under Test)
 AXI_memory_master_burst #(
@@ -82,7 +82,7 @@ AXI_memory_master_burst #(
 ) dut (
 	.clk(clk),
 	.resetn(resetn),
-
+	
 	// Write Address Channel
 	.awid(awid),
 	.awaddr(awaddr),
@@ -91,20 +91,20 @@ AXI_memory_master_burst #(
 	.awburst(awburst),
 	.awvalid(awvalid),
 	.awready(awready),
-
+	
 	// Write Data Channel
 	.wdata(wdata),
 	.wstrb(wstrb),
 	.wlast(wlast),
 	.wvalid(wvalid),
 	.wready(wready),
-
+	
 	// Write Response Channel
 	.bid(bid),
 	.bresp(bresp),
 	.bvalid(bvalid),
 	.bready(bready),
-
+	
 	// Read Address Channel
 	.arid(arid),
 	.araddr(araddr),
@@ -113,7 +113,7 @@ AXI_memory_master_burst #(
 	.arburst(arburst),
 	.arvalid(arvalid),
 	.arready(arready),
-
+	
 	// Read Data Channel
 	.rid(rid),
 	.rdata(rdata),
@@ -121,7 +121,7 @@ AXI_memory_master_burst #(
 	.rlast(rlast),
 	.rvalid(rvalid),
 	.rready(rready),
-
+	
 	// Control signals
 	.start_write(start_write),
 	.write_id(write_id),
@@ -138,8 +138,6 @@ AXI_memory_master_burst #(
 	.read_size(read_size),
 	.read_burst(read_burst)
 );
-
-
 
 // memory for simulation to store data
 reg [31:0] memory [0:MEM_SIZE];
@@ -166,7 +164,7 @@ initial begin
 	read_len = 0;
 	read_size = 0;
 	read_burst = 0;
-
+	
 	// Apply reset
 	#10;
 	resetn = 1;
@@ -195,18 +193,22 @@ begin
 	start_read = 1;
 	read_id = id;
 	read_addr = addr;
-	read_len = len - 1;
+	read_len = len; // [LK 01.01.25] 
 	read_size = size;
 	read_burst = burst;
 	wait(arready);
-	for (i = 0; i < len; i = i + 1) begin
+	start_read = 0;
+	for (i = 0; i <= len; i = i + 1) begin
+		rlast = (i==len) ;		// [LK 01.01.25] this is the fix of rlast:
+
 		wait(rvalid);
 		$display("Read Data: %h", rdata);
-		if (rlast) begin
+		/*if (rlast) begin // [LK 01.01.25] this is wrong!!! it should come from TB to dut!
 			break;
-		end
+		end*/
+		#10;
 	end
-	start_read = 0;
+	rlast = 0;
 end
 endtask
 
@@ -226,11 +228,12 @@ begin
 	write_len = len - 1;
 	write_size = size;
 	write_burst = burst;
-	#40;
+	#35; // [LK 01.01.25] changed fro 40 to 35
 	for (i = 0; i < len; i = i + 1) begin
-		write_data =  i*50;
+		write_data = 10 + i; // [LK 01.01.25 changed to be more readable]
 		write_strb = 4'b1111;
 		#10;
+		start_write = 0;
 		//wait(wready);
 	end
 	start_write = 0;
@@ -279,8 +282,8 @@ always @(posedge clk) begin
 		arready <= 0;
 		rvalid <= 0;
 		rdata <= 0;
-		rlast <= 0;
 		read_len <= 0;  // Make sure read_len is reset
+		read_data_count <= 0; // [LK 01.01.24]
 	end else begin
 		// Simulate arready
 		if (arvalid && !arready) begin
@@ -294,16 +297,21 @@ always @(posedge clk) begin
 			rvalid <= 1;  // Keep rvalid high during the burst
 		end else if (rready && rvalid && rlast) begin
 			rvalid <= 0;  // Only deassert rvalid once the burst is finished
-			rlast <= 0;   // Reset rlast
+			// rlast <= 0;   // Reset rlast
+			read_data_count <= 0; // [LK 01.01.24]
 		end
-
+		
 		if (rvalid) begin			
 			rdata <= memory[araddr[7:0]];  // Provide read data from memory
+			read_data_count <= read_data_count + 1; // [LK 01.01.24]
 			// Set rlast to 1 when it's the last read in the burst
-			rlast <= (read_len == 0);
+			//rlast <= (read_len == 0); [LK 01.01.24]
+			
+			/* [LK 01.01.24] remove this -> is stopped the read operation. 
 			// Decrement the read length as the burst progresses
 			if (read_len > 0) 
 				read_len <= read_len - 1;
+				*/
 		end 
 	end
 end

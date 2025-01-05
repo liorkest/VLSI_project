@@ -43,8 +43,9 @@ logic [15:0] pixels_in_line_count;
 assign base_addr =  (1 << write_size) * pixels_per_frame * frame_count; 
 logic s_axis_tready_logic;
 logic tdata_shift_en; // [LK 01.01.25]
-// Instantiate the AXI_stream_slave module
 assign s_axis_tready = s_axis_tready_logic;
+
+// Instantiate the AXI_stream_slave module
 AXI_stream_slave #(
 	.DATA_WIDTH(DATA_WIDTH)
 ) uut (
@@ -125,7 +126,7 @@ end
 
 
 always_comb begin
-	// next_state = state;  /// [LK 01.01.25 OMG it is wrong!]
+	next_state = state;  
 	start_write = 0;
 	write_strb = 4'b1111;
 	write_burst = 1;
