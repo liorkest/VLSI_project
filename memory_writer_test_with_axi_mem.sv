@@ -12,7 +12,7 @@ module memory_writer_with_axi_mem_tb;
 	parameter DATA_WIDTH = 32;
 	parameter ADDR_WIDTH = 32;
 	parameter ID_WIDTH = 4;
-	parameter MEM_SIZE = 32;
+	parameter MEM_SIZE = 128;
 
 	// Testbench signals
 	logic                       clk;
@@ -219,7 +219,7 @@ module memory_writer_with_axi_mem_tb;
 		//#50;
 		for(int frame=0; frame < 4; frame++) begin
 			for(int i=0; i < pixels_per_frame; i++) begin 
-				send_transaction((i+1)*100, (i%frame_width == frame_width-1) ,i==0); // Data: 0x12345678, Last: 0 // [LK 01.01.25 changed to (i+1)]
+				send_transaction((i+1)*(frame+1), (i%frame_width == frame_width-1) ,i==0); // Data: 0x12345678, Last: 0 // [LK 01.01.25 changed to (i+1)]
 			end
 			// End transaction
 			s_axis_tuser = 1'b0;

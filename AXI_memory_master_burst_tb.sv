@@ -171,10 +171,10 @@ initial begin
 	#10;
 	@(posedge clk);
 	// Burst Write Transaction
-	AXI_memory_master_write_burst(4'hA, 32'h0, 8, 3'b010, 2'b01);
+	AXI_memory_master_write_burst(4'hA, 32'h0, 8, 2, 2'b01);
 	#20;
 	// Burst Read Transaction
-	AXI_memory_master_read_burst(4'hA, 32'h0, 8, 3'b010, 2'b01);
+	AXI_memory_master_read_burst(4'hA, 32'h0, 8, 2, 2'b01);
 	#200;
 	// Finish simulation
 	$finish;
@@ -305,13 +305,12 @@ always @(posedge clk) begin
 			rdata <= memory[araddr[7:0]];  // Provide read data from memory
 			read_data_count <= read_data_count + 1; // [LK 01.01.24]
 			// Set rlast to 1 when it's the last read in the burst
-			//rlast <= (read_len == 0); [LK 01.01.24]
+			rlast <= (read_len == 0); 
 			
-			/* [LK 01.01.24] remove this -> is stopped the read operation. 
 			// Decrement the read length as the burst progresses
 			if (read_len > 0) 
 				read_len <= read_len - 1;
-				*/
+				
 		end 
 	end
 end

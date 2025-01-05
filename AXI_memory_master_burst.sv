@@ -92,17 +92,19 @@ always_ff @(posedge clk or negedge resetn) begin
 	end else begin
 		write_state <= write_state_next;
 		if (write_state == WRITE_IDLE) begin
-			write_burst_addr <= write_addr;
+			write_burst_addr <= write_addr; // Initialize burst address
 		end else if (write_state == WRITE_DATA) begin
 			if (wready && wvalid && write_beat_count < write_len) begin
 				write_beat_count <= write_beat_count + 1;
-				write_burst_addr <= write_burst_addr + 1;  // Increment by 2^write_size
+				write_burst_addr <= write_burst_addr + (1 << write_size);  // Increment by 2^write_size
 			end else begin
 				write_beat_count <= 8'd0;
 			end
-		end else if (write_state == WRITE_IDLE) begin
-			write_burst_addr <= write_addr;  // Initialize burst address
-		end
+		end 
+		// [04.01.25 LS] was written twice
+		//else if (write_state == WRITE_IDLE) begin
+			//write_burst_addr <= write_addr;  // Initialize burst address
+		//end
 	end
 end
 
@@ -164,7 +166,7 @@ always_ff @(posedge clk or negedge resetn) begin
 		if (read_state == READ_DATA && rready && rvalid) begin
 			if (read_beat_count < read_len) begin
 				read_beat_count <= read_beat_count + 1;
-				read_burst_addr <= read_burst_addr + 1;  // Increment by 2^read_size
+				read_burst_addr <= read_burst_addr + (1 << write_size);  // Increment by 2^read_size
 			end else begin
 				read_beat_count <= 8'd0;
 			end

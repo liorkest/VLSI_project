@@ -40,7 +40,7 @@ logic [31:0] base_addr ;
 logic [1:0] frame_count; // 0,1,2 values
 logic [31:0] line_count;
 logic [15:0] pixels_in_line_count;
-assign base_addr = pixels_per_frame * frame_count;
+assign base_addr =  (1 << write_size) * pixels_per_frame * frame_count; 
 logic s_axis_tready_logic;
 logic tdata_shift_en; // [LK 01.01.25]
 // Instantiate the AXI_stream_slave module
@@ -112,6 +112,7 @@ always_ff @(posedge clk or negedge rst_n) begin
 		end else if (state == FRAME_READY) begin
 			frame_ready <= 1;
 			line_count <= 0;
+			pixels_in_line_count <= 0; // [LS 04.01.25]
 			frame_count <= frame_count + 1;
 			if (line_count == frame_height && frame_count == 2) begin
 				frame_count <= 0;
@@ -129,11 +130,13 @@ always_comb begin
 	write_strb = 4'b1111;
 	write_burst = 1;
 	// write_data = 0; commented out [LK 01.01.25]
-	write_size = 1;
+	write_size = 2;
 	write_len = pixels_per_frame;
 	tdata_shift_en = 0;//[LK 01.01.25]
 	case (state)
 		IDLE: begin
+			write_len = 0; // [LS 04.01.25] added so last pixel won't be written again in the next address
+			write_burst = 0; // [LS 04.01.25] added so last pixel won't be written again in the next address
 			if (s_axis_tready_logic) begin
 				next_state = RECEIVE;
 				start_write = 1;
