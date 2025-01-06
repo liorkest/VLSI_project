@@ -126,37 +126,12 @@ always_ff @(posedge clk or negedge rst_n) begin
 					row_counter <= 0;
 				end
 			end
-/*
-			if (row_counter < (frame_height >> $clog2(BLOCK_SIZE)) - 1) begin
-				if (col_counter < (frame_width >> $clog2(BLOCK_SIZE)) - 1) begin
-					if (pixel_y < BLOCK_SIZE - 1) begin
-						if (pixel_x < BLOCK_SIZE - 1) begin
-							pixel_x <= pixel_x + 1;
-						end else begin
-							pixel_x <= 0;
-							pixel_y <= pixel_y + 1;
-						end
-					end else if (pixel_x == BLOCK_SIZE - 1) begin
-							pixel_x <= 0;
-							pixel_y <= 0;
-							col_counter <= col_counter + 1;
-					end else begin
-						pixel_x <= pixel_x + 1;		
-					end
-				end else begin
-					col_counter <= 0;
-					row_counter <= row_counter + 1;
-				end
-			end else begin
-				col_counter <= 0;
-				row_counter <= 0;
-			end
-*/			
+
 			if (next_state == READ_HANDSHAKE) begin
 				if (!start_read_flag) begin
 					start_read <= 1;
 				end
-				read_addr <= curr_base_addr + col_counter * BLOCK_SIZE + frame_width * row_counter * BLOCK_SIZE + frame_width * pixel_y;
+				read_addr <= curr_base_addr + col_counter * BLOCK_SIZE + frame_width * row_counter * BLOCK_SIZE + frame_width * pixel_y; 
 			end
 			
 		end else if (state == FRAME_READY) begin

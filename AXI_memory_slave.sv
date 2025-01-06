@@ -73,7 +73,7 @@ module AXI_memory_slave #(
 
 			// Simulate memory write
 			if (wvalid && wready) begin
-				memory[awaddr[7:0]] <= wdata;
+				memory[awaddr] <= wdata;
 			end
 
 			// Simulate bvalid
@@ -95,6 +95,11 @@ module AXI_memory_slave #(
 			rdata <= 0;
 			read_len <= 0;  // Make sure read_len is reset
 			read_data_count <= 0; // [LK 01.01.24]
+			rlast <= 0;
+			// initialize memory
+			for(int i=0; i< MEM_SIZE; i++) begin
+				memory[i] = i+1;
+			end
 		end else begin
 			// Simulate arready
 			if (arvalid && !arready) begin
@@ -102,20 +107,24 @@ module AXI_memory_slave #(
 			end else begin
 				arready <= 0;
 			end
+			
+			if (rvalid) begin			
+				rdata <= memory[araddr];  // Provide read data from memory
+				read_data_count <= read_data_count + 1; // [LK 01.01.24]
+				rlast <= (read_data_count == read_len - 1);
+			end 
 
 			// Simulate rvalid and rdata for burst mode
 			if (arvalid && arready) begin
 				rvalid <= 1;  // Keep rvalid high during the burst
+				read_len <= arlen;
 			end else if (rready && rvalid && rlast) begin
 				rvalid <= 0;  // Only deassert rvalid once the burst is finished
-				// rlast <= 0;   // Reset rlast
+				rlast <= 0;   // Reset rlast
 				read_data_count <= 0; // [LK 01.01.24]
 			end
 			
-			if (rvalid) begin			
-				rdata <= memory[araddr[7:0]];  // Provide read data from memory
-				read_data_count <= read_data_count + 1; // [LK 01.01.24]
-			end 
+
 		end
 	end
 

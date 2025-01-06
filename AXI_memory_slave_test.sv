@@ -149,18 +149,15 @@ initial begin
   wvalid = 1;
   wlast = 0;
 
-  // Write first data
   #10;
   awaddr = awaddr + 1;
   wdata = 32'h5A5A5A5A;
   #10;
 
-  // Write second data
   awaddr = awaddr + 1;
   wdata = 32'h12345678;
   #10;
 
-  // Last write data
   wdata = 32'h87654321;
   awaddr = awaddr + 1;
   wlast <= 1;
@@ -188,20 +185,23 @@ initial begin
   wait(rvalid);
   $display("Read data: %h", rdata);
 
-  // Read second data
-  araddr <= araddr + 1;
+  araddr = araddr + 1;
   #10;
   wait(rvalid);
   $display("Read data: %h", rdata);
 
-  // Read third data
-  araddr <= araddr + 1;
+  araddr = araddr + 1;
+  #10;
+  wait(rvalid);
+  $display("Read data: %h", rdata);
+  
+  araddr = araddr + 1;
   #10;
   wait(rvalid);
   $display("Read data: %h", rdata);
 
   // Finish simulation
-  #10;
+  #20;
   $finish;
 end
 
