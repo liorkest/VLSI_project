@@ -40,6 +40,7 @@ logic [3:0] pixel_x;
 logic [3:0] pixel_y;
 logic [ADDR_WIDTH-1:0] curr_base_addr;
 logic start_read_flag;
+logic [ADDR_WIDTH-1:0] addr_holder;
 
 // State machine for handling AXI Stream transactions
 typedef enum logic [1:0] {
@@ -60,6 +61,7 @@ always_ff @(posedge clk or negedge rst_n) begin
 		base_addr_out <= 0;
 		noise_estimation_en <= 0;
 		read_addr <= 0;
+		addr_holder <= 0;
 		frame_ready_for_wiener <= 0;
 		row_counter <= 0;
 		col_counter <= 0;
@@ -89,13 +91,13 @@ always_ff @(posedge clk or negedge rst_n) begin
 				start_read_flag <= 1;
 				start_read <= 0;
 			end
-			noise_estimation_en <= 0;
+			noise_estimation_en <= 0; // [LS 06.01.25] noise estimation should be enabled only when state is READ
 			if (next_state == READ) begin
-				noise_estimation_en <= 1;
+				noise_estimation_en <= 1; // [LS 06.01.25] noise estimation should be enabled only when state is READ
 			end			
 		end else if (state == READ) begin
 			start_read_flag <= 0;
-			noise_estimation_en <= 1;
+			noise_estimation_en <= 1; // [LS 06.01.25] noise estimation should be enabled only when state is READ
 			$display("row_counter < (frame_height >> $clog2(BLOCK_SIZE)) - 1) --->  row_counter < %d", ((frame_height >> $clog2(BLOCK_SIZE)) - 1 ));
 			$display("col_counter < (frame_width >> $clog2(BLOCK_SIZE)) - 1 --->  col_counter < %d", ((frame_width >> $clog2(BLOCK_SIZE) )- 1 ));
 
@@ -126,12 +128,24 @@ always_ff @(posedge clk or negedge rst_n) begin
 					row_counter <= 0;
 				end
 			end
+			// -> [LS 06.01.25] because of the multiplication, need to calculate new address one cycle before update 
+			if (pixel_x == BLOCK_SIZE - 2) begin
+				if (pixel_y < BLOCK_SIZE - 1) begin
+					addr_holder <= curr_base_addr + col_counter * BLOCK_SIZE + frame_width * row_counter * BLOCK_SIZE + frame_width * (pixel_y+1);
+				end else if (col_counter < (frame_width >> $clog2(BLOCK_SIZE)) - 1) begin
+					addr_holder <= curr_base_addr + (col_counter+1) * BLOCK_SIZE + frame_width * row_counter * BLOCK_SIZE;
+				end else begin
+					addr_holder <= curr_base_addr + frame_width * (row_counter+1) * BLOCK_SIZE;
+				end
+			end
+			// <-
 
 			if (next_state == READ_HANDSHAKE) begin
 				if (!start_read_flag) begin
 					start_read <= 1;
-				end
-				read_addr <= curr_base_addr + col_counter * BLOCK_SIZE + frame_width * row_counter * BLOCK_SIZE + frame_width * pixel_y; 
+				end 
+				read_addr <= addr_holder;
+				noise_estimation_en <= 0; // [LS 06.01.25] noise estimation should be enabled only when state is READ 
 			end
 			
 		end else if (state == FRAME_READY) begin

@@ -103,7 +103,7 @@ module noise_estimation_tb;
         $display("Estimated noise: %0d", estimated_noise);
 
         // Finish simulation
-        #100;
+        #200;
         $finish;
     end
 
