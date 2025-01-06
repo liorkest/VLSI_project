@@ -263,9 +263,11 @@ module memory_writer_test_with_axi_mem_slave_inst;
 				send_transaction((i+1)*(frame+1), (i%frame_width == frame_width-1) ,i==0); // Data: 0x12345678, Last: 0 // [LK 01.01.25 changed to (i+1)]
 			end
 			// End transaction
+			@(negedge clk);
 			s_axis_tuser = 1'b0;
 			s_axis_tvalid = 1'b0;
 			s_axis_tdata = 1'b0; // [LK 01.01.25]
+			@(posedge clk);
 			#1;
 			s_axis_tlast = 1'b0;
 			#9;
@@ -278,14 +280,13 @@ module memory_writer_test_with_axi_mem_slave_inst;
 	// Task to send a single transaction
 	task send_transaction(input [DATA_WIDTH-1:0] data, input last, input user);
 	begin
-
 		s_axis_tvalid = 1'b1;
 		s_axis_tuser = user;
 		@(negedge clk);
 		s_axis_tdata = data;
 		#1;
 		s_axis_tlast = last;
-		#9;
+		// #9;
 		wait(s_axis_tready);
 
 
