@@ -96,7 +96,7 @@ always_ff @(posedge clk or negedge resetn) begin
 		end else if (write_state == WRITE_DATA) begin
 			if (wready && wvalid && write_beat_count < write_len) begin
 				write_beat_count <= write_beat_count + 1;
-				write_burst_addr <= write_burst_addr + (1 << write_size);  // Increment by 2^write_size
+				write_burst_addr <= write_burst_addr + 1 ;  // Increment by 2^write_size [LK 06.01.25] changed back from (1 << write_size) to 1
 			end else begin
 				write_beat_count <= 8'd0;
 			end
@@ -166,7 +166,7 @@ always_ff @(posedge clk or negedge resetn) begin
 		if (read_state == READ_DATA && rready && rvalid) begin
 			if (read_beat_count < read_len) begin
 				read_beat_count <= read_beat_count + 1;
-				read_burst_addr <= read_burst_addr + (1 << read_size);  // Increment by 2^read_size
+				read_burst_addr <= read_burst_addr + 1;  // Increment by 2^read_size [LK 06.01.25] changed back to 1
 			end else begin
 				read_beat_count <= 8'd0;
 			end

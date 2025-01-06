@@ -151,18 +151,21 @@ initial begin
 
   // Write first data
   #10;
+  awaddr = awaddr + 1;
   wdata = 32'h5A5A5A5A;
   #10;
 
   // Write second data
+  awaddr = awaddr + 1;
   wdata = 32'h12345678;
   #10;
 
   // Last write data
   wdata = 32'h87654321;
-  wlast = 1;
+  awaddr = awaddr + 1;
+  wlast <= 1;
   #10;
-
+  wlast <= 0;
   // Wait for write response
   wait(bvalid);
   bready = 1;
@@ -173,12 +176,12 @@ initial begin
   arlen = 8'h3;
   arsize = 3'b010;  // 32-bit words
   arburst = 2'b01;   // INCR burst
-  arvalid = 1;
+  arvalid <= 1;
 
   // Wait for AR ready
   wait(arready);
   @(posedge clk);
-  arvalid = 0;
+  arvalid <= 0;
 
   // Wait and read data
   #10;
@@ -186,11 +189,13 @@ initial begin
   $display("Read data: %h", rdata);
 
   // Read second data
+  araddr <= araddr + 1;
   #10;
   wait(rvalid);
   $display("Read data: %h", rdata);
 
   // Read third data
+  araddr <= araddr + 1;
   #10;
   wait(rvalid);
   $display("Read data: %h", rdata);
