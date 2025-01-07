@@ -66,7 +66,7 @@ mean_unit #(
 ) mean_unit_inst (
 	.clk(clk),
 	.rst_n(rst_n),
-	.total_samples(blocks_per_frame),
+	.total_samples(TOTAL_SAMPLES), // was 'blocks_per_frame' changed to 'TOTAL_SAMPLES' [LK 07.01.25]
 	.data_in(data_in),
 	.start_data_in(start_data),
 	.en(1),                        // entered constant [05.12.24]
