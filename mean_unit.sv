@@ -39,8 +39,11 @@ module mean_unit #(
 			count <= 0;
 			ready <= 1;
 			mean_out <= sum >> $clog2(total_samples);
-		end else if (start_data_in) begin
+		end
+		
+		if (start_data_in) begin
 				count <= 0;
+				sum <= 0;
 				ready <= 0;
 				//mean_out <= 0; [05.12.24]
 		end

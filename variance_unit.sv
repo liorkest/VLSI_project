@@ -13,14 +13,14 @@ module variance_unit #(
 	input  logic                   rst_n,
 	input  logic [DATA_WIDTH-1:0]  data_in,   // 8-bit input data
 	input  logic                   start_data_in,
-	input  logic [2*DATA_WIDTH-1:0]  mean_in,   // 8-bit mean value (from mean_calculator)
+	input  logic [DATA_WIDTH-1:0]  mean_in,   // 8-bit mean value (from mean_calculator)
 	output logic [2*DATA_WIDTH-1:0]  variance_out, // 16-bit variance output
 	output logic                   ready         // Ready signal when variance is computed
 );
 
 	logic [31:0] variance_sum; // Accumulator for variance sum
 	logic [DATA_WIDTH-1:0] count;                       // Counter for number of samples
-	logic signed [DATA_WIDTH - 1:0] diff; // added -1 [05.12.24]
+	logic signed [DATA_WIDTH:0] diff; // added -1 [05.12.24] // removed -1 [08.01.25]
 	logic [2 * DATA_WIDTH:0] diff_square;
 	logic data_started;
 

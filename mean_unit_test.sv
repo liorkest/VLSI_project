@@ -79,9 +79,7 @@ initial begin
 	end
 
 	en =1 ;
-	start_data_in = 1'b1;
 	#10;
-	start_data_in = 1'b0;
 	for (i = 0; i < TOTAL_SAMPLES; i++) begin
 
 		feed_sample(sample_data[i], i);
