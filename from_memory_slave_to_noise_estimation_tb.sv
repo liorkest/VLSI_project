@@ -59,6 +59,9 @@ module from_memory_slave_to_noise_estimation_tb;
 	// noise estimation
 	logic [2*DATA_WIDTH-1:0] estimated_noise;
 	logic estimated_noise_ready;
+	logic start_data;
+	logic start_of_frame_noise_estimation;
+	
 	
 	memory_reader_noise_estimation #(
 		.ADDR_WIDTH(ADDR_WIDTH),
@@ -80,7 +83,7 @@ module from_memory_slave_to_noise_estimation_tb;
 		.read_size(read_size),
 		.read_burst(read_burst),
 		.base_addr_out(base_addr_out),
-		.noise_estimation_en(noise_estimation_en),
+		//.noise_estimation_en(noise_estimation_en),
 		.start_of_frame(start_of_frame),
 		.frame_ready_for_wiener(frame_ready_for_wiener)
 	);
@@ -138,7 +141,7 @@ module from_memory_slave_to_noise_estimation_tb;
 	
 	// RGB mean
 	RGB_mean #(.DATA_WIDTH(BYTE_DATA_WIDTH)) dut ( 
-		.en(noise_estimation_en), 
+		.en(1), 
 		.data_in(rdata), 
 		.data_out(rgb_mean_out) 
 	 ); 
@@ -146,14 +149,14 @@ module from_memory_slave_to_noise_estimation_tb;
 	// DUT instantiation
 	noise_estimation #(
 		.DATA_WIDTH(BYTE_DATA_WIDTH),
-		.TOTAL_SAMPLES(TOTAL_SAMPLES) // Total number of pixels per frame (MUST be power of 2)
+		.TOTAL_SAMPLES(BLOCK_SIZE*BLOCK_SIZE) // Total number of pixels per frame (MUST be power of 2)
 	) noise_estimation_dut (
 		.clk(clk & noise_estimation_en), /// TBD check if OK
 		.rst_n(rst_n),
-		.start_of_frame(frame_ready_for_wiener),
+		.start_of_frame(start_of_frame_noise_estimation), //08.01.25
 		//.end_of_frame(end_of_frame), ??????
 		.data_in(rgb_mean_out),
-		.start_data(start_read),  /// [06.1.25] check this!!!! NOT sure!!  TBD!!!!!
+		.start_data(start_data),  /// [06.1.25] check this!!!! NOT sure!!  TBD!!!!!
 		.blocks_per_frame(blocks_per_frame),
 		.estimated_noise(estimated_noise),
 		.estimated_noise_ready(estimated_noise_ready)
@@ -169,19 +172,49 @@ module from_memory_slave_to_noise_estimation_tb;
 		rst_n = 0;
 		clk = 0;
 		frame_ready = 0;
+		start_data = 0;
+		noise_estimation_en = 0;
+		start_of_frame_noise_estimation = 0;
 		base_addr_in = 32'h0000_0000;
 
 		
 		// Apply reset
 		#20 rst_n = 1;
 		#20;
-
 		// Test Case 1: Start a new frame
 		frame_ready = 1;
 		base_addr_in = 32'h0000_0000;
-		#10 frame_ready = 0;
-
-
+		#10;
+		frame_ready = 0;
+		
+		#30;
+		noise_estimation_en = 1;
+		#5;
+		for(int i=0; i < blocks_per_frame; i++) begin
+			start_data = 1;
+			start_of_frame_noise_estimation = (i==0);
+			#10;
+			start_of_frame_noise_estimation = 0;
+			noise_estimation_en = 0;
+			start_data = 0;
+			for (int j = 0; j < BLOCK_SIZE; j++) begin
+				noise_estimation_en = 1;
+				
+				// #85;  // option 1
+				wait(rlast); // option 2
+				#15;
+				if(j==BLOCK_SIZE-1) #10; // for mean calculation - last cycle
+					
+				
+				if(j!=BLOCK_SIZE-1) begin
+					noise_estimation_en = 0;
+					#45;
+				end else if (j==BLOCK_SIZE-1) begin
+					#25;
+				end
+			end
+		end
+		
 		#5000;
 		$finish;
 	end

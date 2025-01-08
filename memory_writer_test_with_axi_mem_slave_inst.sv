@@ -228,8 +228,7 @@ module memory_writer_test_with_axi_mem_slave_inst;
 		forever #5 clk = ~clk; // 100MHz clock
 	end
 	
-	// memory for simulation to store data
-	reg [31:0] memory [0:MEM_SIZE];
+
 
 	// Stimulus generation
 	initial begin

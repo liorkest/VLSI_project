@@ -106,7 +106,7 @@ initial begin
 	curr_data_idx = 0; // [06.12.24]
 	// Reset sequence
 	#25 rst_n = 1;
-
+	#20;
 	// Send blocks
 	for(int frame_idx = 0; frame_idx < frames_num; frame_idx++) begin
 		for(int i = 0; i < blocks_per_frame; i++) begin

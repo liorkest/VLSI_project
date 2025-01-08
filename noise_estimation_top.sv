@@ -8,7 +8,7 @@
 
 module noise_estimation #(
 	parameter DATA_WIDTH = 8,         // Width of input data (each pixel in the channel)
-	parameter TOTAL_SAMPLES = 8     // Total number of pixels per frame (MUST be power of 2)
+	parameter TOTAL_SAMPLES = 8     // Total number of pixels per block (MUST be power of 2)
 )(
 	input  logic                   clk,
 	input  logic                   rst_n,

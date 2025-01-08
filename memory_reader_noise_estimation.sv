@@ -59,7 +59,7 @@ always_ff @(posedge clk or negedge rst_n) begin
 		start_read <= 0;
 		start_read_flag <= 0;
 		base_addr_out <= 0;
-		noise_estimation_en <= 0;
+		//noise_estimation_en <= 0;
 		read_addr <= 0;
 		addr_holder <= 0;
 		frame_ready_for_wiener <= 0;
@@ -71,7 +71,7 @@ always_ff @(posedge clk or negedge rst_n) begin
 		state <= next_state;
 		
 		if (state == IDLE) begin
-			noise_estimation_en <= 0;
+			//noise_estimation_en <= 0;
 			read_addr <= 0;
 			frame_ready_for_wiener <= 0;
 			row_counter <= 0;
@@ -91,13 +91,13 @@ always_ff @(posedge clk or negedge rst_n) begin
 				start_read_flag <= 1;
 				start_read <= 0;
 			end
-			noise_estimation_en <= 0; // [LS 06.01.25] noise estimation should be enabled only when state is READ
+			//noise_estimation_en <= 0; // [LS 06.01.25] noise estimation should be enabled only when state is READ
 			if (next_state == READ) begin
-				noise_estimation_en <= 1; // [LS 06.01.25] noise estimation should be enabled only when state is READ
+				//noise_estimation_en <= 1; // [LS 06.01.25] noise estimation should be enabled only when state is READ
 			end			
 		end else if (state == READ) begin
 			start_read_flag <= 0;
-			noise_estimation_en <= 1; // [LS 06.01.25] noise estimation should be enabled only when state is READ
+			// noise_estimation_en <= 1; // [LS 06.01.25] noise estimation should be enabled only when state is READ
 			$display("row_counter < (frame_height >> $clog2(BLOCK_SIZE)) - 1) --->  row_counter < %d", ((frame_height >> $clog2(BLOCK_SIZE)) - 1 ));
 			$display("col_counter < (frame_width >> $clog2(BLOCK_SIZE)) - 1 --->  col_counter < %d", ((frame_width >> $clog2(BLOCK_SIZE) )- 1 ));
 
@@ -138,14 +138,13 @@ always_ff @(posedge clk or negedge rst_n) begin
 					addr_holder <= curr_base_addr + frame_width * (row_counter+1) * BLOCK_SIZE;
 				end
 			end
-			// <-
 
 			if (next_state == READ_HANDSHAKE) begin
 				if (!start_read_flag) begin
 					start_read <= 1;
 				end 
 				read_addr <= addr_holder;
-				noise_estimation_en <= 0; // [LS 06.01.25] noise estimation should be enabled only when state is READ 
+				//noise_estimation_en <= 0; // [LS 06.01.25] noise estimation should be enabled only when state is READ 
 			end
 			
 		end else if (state == FRAME_READY) begin
@@ -157,6 +156,8 @@ always_ff @(posedge clk or negedge rst_n) begin
 	end
 end
 
+// [LK 08.01.25] changed noise_estimation_en to async signal
+assign noise_estimation_en = (state == READ) || start_of_frame;
 
 always_comb begin
 	next_state = state;
@@ -174,7 +175,7 @@ always_comb begin
 		end
 
 		READ_HANDSHAKE: begin
-			start_of_frame = arready && (pixel_x == 0) && (pixel_y == 0); //start_of_frame == 1 only before first pixel
+			start_of_frame = arready && (pixel_x == 0) && (pixel_y == 0) && (row_counter == 0) && (col_counter == 0); //start_of_frame == 1 only before first pixel
 			if (rvalid) begin
 				next_state = READ;
 			end

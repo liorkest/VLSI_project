@@ -98,7 +98,7 @@ module AXI_memory_slave #(
 			rlast <= 0;
 			// initialize memory
 			for(int i=0; i< MEM_SIZE; i++) begin
-				memory[i] = i; //[LS 06.01.25] easier to see read delay this way
+				memory[i] = {8'd0, i[7:0],i[7:0],i[7:0]}; //[LS 06.01.25] easier to see read delay this way
 			end
 		end else begin
 			// Simulate arready
