@@ -8,7 +8,7 @@
 
 module wiener_block_stats #(
 	parameter DATA_WIDTH = 8,         // Width of input data (each pixel in the channel)
-	parameter TOTAL_SAMPLES = 8     // Total number of pixels per frame (MUST be power of 2)
+	parameter TOTAL_SAMPLES = 8     // Total number of samples per block (MUST be power of 2)
 )(
 	input  logic                   clk,
 	input  logic                   rst_n,
@@ -52,8 +52,9 @@ always_ff @(posedge clk or negedge rst_n) begin
 end*/
 
 
-wiener_block_stats_FSM #(.DATA_WIDTH(DATA_WIDTH),
-	.TOTAL_SAMPLES(TOTAL_SAMPLES)
+wiener_block_stats_FSM #(
+	.DATA_WIDTH(DATA_WIDTH),
+	.TOTAL_SAMPLES(TOTAL_SAMPLES) // Total number of samples per block (MUST be power of 2)
 ) wiener_block_stats_FSM_inst (
 	.clk(clk),
 	.rst_n(rst_n),
@@ -75,7 +76,7 @@ mean_unit #(
 ) mean_unit_inst (
 	.clk(clk),
 	.rst_n(rst_n),
-	.total_samples(blocks_per_frame),
+	.total_samples(TOTAL_SAMPLES), // Total number of samples per block (MUST be power of 2)
 	.data_in(data_in),
 	.start_data_in(start_data),
 	.en(1),                        // entered constant [05.12.24] LK

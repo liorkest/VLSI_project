@@ -9,13 +9,11 @@
 
 
 module memory_writer_test_with_axi_mem_slave_inst;
-
 	// Parameters
 	parameter DATA_WIDTH = 32;
 	parameter ADDR_WIDTH = 32;
 	parameter ID_WIDTH = 4;
 	parameter MEM_SIZE = 128;
-
 	// Testbench signals
 	logic                       clk;
 	logic                       rst_n;

@@ -88,10 +88,12 @@ wiener_1_channel #(
 // connections
 assign	data_in_r = data_in[7:0];
 assign	data_in_g = data_in[15:8];
-assign	data_in_b = data_in[31:16];
+assign	data_in_b = data_in[23:16];
+
 assign	data_out[7:0]=data_out_r;
 assign	data_out[15:8]=data_out_g;
-assign	data_out[31:16]=data_out_b;
+assign	data_out[23:16]=data_out_b;
+assign	data_out[31:24]=0;
 
 always_comb begin
 	if (data_count_r == data_count_g && data_count_r == data_count_b) begin

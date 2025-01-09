@@ -33,7 +33,7 @@ logic [DATA_WIDTH-1:0]    serial_data_wire;
 // DUT instantiation
 wiener_block_stats #(
 	.DATA_WIDTH(DATA_WIDTH),
-	.TOTAL_SAMPLES(TOTAL_SAMPLES)
+	.TOTAL_SAMPLES(TOTAL_SAMPLES) // Total number of samples per block (MUST be power of 2)
 ) wiener_block_stats_inst (
 	.clk(clk),
 	.rst_n(rst_n),
@@ -51,7 +51,7 @@ wiener_block_stats #(
 
 wiener_calc #( 
 	.DATA_WIDTH(DATA_WIDTH), 
-	.TOTAL_SAMPLES(TOTAL_SAMPLES) 
+	.TOTAL_SAMPLES(TOTAL_SAMPLES) // Total number of samples per block (MUST be power of 2)
   ) wiener_calc_inst ( 
 	.clk(clk), 
 	.rst_n(rst_n), 
