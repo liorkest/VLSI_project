@@ -173,11 +173,12 @@ initial begin
 
 	
 	// Apply reset
-	#20 rst_n = 1;
+	#20;
+	rst_n = 1;
 	#20;
 	// Test Case 1: Start a new frame
 	estimated_noise_ready = 1;
-	estimated_noise = 5386;
+	estimated_noise = 539;
 	base_addr_in = 32'h0000_0000;
 	#10;
 	estimated_noise_ready = 0;
