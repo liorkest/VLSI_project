@@ -35,7 +35,7 @@ logic [31:0] read_len;
 logic [2:0] read_size;
 logic [1:0] read_burst;
 logic [ADDR_WIDTH-1:0] base_addr_out;
-logic wiener_en;
+// logic wiener_en;
 logic start_of_frame_wiener;
 logic frame_ready_for_wiener;
 
@@ -60,6 +60,8 @@ logic [7:0] rgb_mean_out;
 logic [2*BYTE_DATA_WIDTH-1:0] estimated_noise;
 logic estimated_noise_ready;
 logic start_data;
+logic wiener_block_stats_en; // [10.01.25]
+logic wiener_calc_en;        // [10.01.25]
 
 
 memory_reader_wiener #(
@@ -142,7 +144,9 @@ wiener_3_channels #(
 	.DATA_WIDTH(DATA_WIDTH), 
 	.TOTAL_SAMPLES(SAMPLES_PER_BLOCK) 
   ) wiener_3_channels_dut ( 
-	.clk(clk && wiener_en), 
+	.clk(clk),
+	.wiener_block_stats_en(wiener_block_stats_en),
+	.wiener_calc_en(wiener_calc_en),
 	.rst_n(rst_n), 
 	.start_of_frame(start_of_frame_wiener),
 	.end_of_frame(end_of_frame),
@@ -158,6 +162,8 @@ wiener_3_channels #(
 initial clk = 0;
 always #5 clk = ~clk; // 10ns clock period
 
+assign wiener_calc_en = wiener_block_stats_en;
+
 // Testbench logic
 initial begin
 	// Initialize signals
@@ -166,17 +172,18 @@ initial begin
 	estimated_noise_ready = 0;
 	start_of_frame_wiener = 0;
 	start_data = 0;
-	wiener_en = 0;
-	// start_of_frame_noise_estimation = 0;
+	// wiener_en = 0;
+	wiener_block_stats_en = 0; // [10.01.25]
+	
 	base_addr_in = 32'h0000_0000;
 	estimated_noise = 0;
 
-	
 	// Apply reset
 	#20;
 	rst_n = 1;
 	#20;
-	// Test Case 1: Start a new frame
+	
+	//Start a new frame
 	estimated_noise_ready = 1;
 	estimated_noise = 539;
 	base_addr_in = 32'h0000_0000;
@@ -184,30 +191,36 @@ initial begin
 	estimated_noise_ready = 0;
 	
 	#30;
-	wiener_en = 1;
+	wiener_block_stats_en = 1; // [10.01.25]
 	#5;
-	for(int i=0; i < blocks_per_frame; i++) begin
-		start_data = 1;
-		start_of_frame_wiener = (i==0);
-		#10;
-		start_of_frame_wiener = 0;
-		wiener_en = 0;
-		start_data = 0;
+	// reading blocks
+	for(int i=0; i < blocks_per_frame + 2; i++) begin 		
+		// reading line by row
 		for (int j = 0; j < BLOCK_SIZE; j++) begin
-			wiener_en = 1;
-			
-			// #85;  // option 1
-			wait(rlast); // option 2
-			#15;
-			if(j==BLOCK_SIZE-1) #10; // for mean calculation - last cycle
-				
-			
-			if(j!=BLOCK_SIZE-1) begin
-				wiener_en = 0;
-				#45;
-			end else if (j==BLOCK_SIZE-1) begin
-				#25;
+			if (j== 0) begin
+				wiener_block_stats_en = 1; 
+				if (i < blocks_per_frame) 
+					start_data = 1;
+				start_of_frame_wiener = (i==0);
+				#10;
+				start_of_frame_wiener = 0;
+				start_data = 0;
 			end
+			wiener_block_stats_en = 1; 
+			
+			if (j==0) #80;
+			else #80;		
+			
+			if (j == BLOCK_SIZE - 1) begin
+				// wiener_block_stats_en = 0;
+				if(i==0) #30;
+				else #30;
+			end else begin
+				wiener_block_stats_en = 0; 
+				#40;
+			end
+
+
 		end
 	end
 	

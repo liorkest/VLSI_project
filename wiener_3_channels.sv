@@ -13,6 +13,8 @@ module wiener_3_channels #(
 )(
 	input  logic                   clk,
 	input  logic                   rst_n,
+	input  logic 				   wiener_block_stats_en, // [LK 10.01.25]
+	input  logic 				   wiener_calc_en,	// [LK 10.01.25]
 	// controller
 	input  logic                   start_of_frame, end_of_frame, 
 	input  logic [DATA_WIDTH-1:0]  data_in,   // 32-bit input data
@@ -41,6 +43,8 @@ wiener_1_channel #(
 ) red_ch ( 
   .clk(clk), 
   .rst_n(rst_n), 
+  .wiener_block_stats_en(wiener_block_stats_en),
+  .wiener_calc_en(wiener_calc_en),
   .start_of_frame(start_of_frame),
   .end_of_frame(end_of_frame),
   .noise_variance(noise_variance), 
@@ -58,6 +62,8 @@ wiener_1_channel #(
 ) blue_ch ( 
   .clk(clk), 
   .rst_n(rst_n), 
+  .wiener_block_stats_en(wiener_block_stats_en),
+  .wiener_calc_en(wiener_calc_en),
   .start_of_frame(start_of_frame),
   .end_of_frame(end_of_frame),
   .noise_variance(noise_variance), 
@@ -75,6 +81,8 @@ wiener_1_channel #(
 ) green_ch ( 
   .clk(clk), 
   .rst_n(rst_n), 
+  .wiener_block_stats_en(wiener_block_stats_en),
+  .wiener_calc_en(wiener_calc_en),
   .start_of_frame(start_of_frame),
   .end_of_frame(end_of_frame),
   .noise_variance(noise_variance), 

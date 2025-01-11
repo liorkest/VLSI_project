@@ -12,6 +12,8 @@ module wiener_1_channel #(
 )(
 	input  logic                   clk,
 	input  logic                   rst_n,
+	input  logic 				   wiener_block_stats_en, // [LK 10.01.25]
+	input  logic 				   wiener_calc_en,	// [LK 10.01.25]
 	// controller
 	input  logic                   start_of_frame, end_of_frame, 
 	input  logic [DATA_WIDTH-1:0]  data_in,   // 8-bit input data
@@ -35,7 +37,7 @@ wiener_block_stats #(
 	.DATA_WIDTH(DATA_WIDTH),
 	.TOTAL_SAMPLES(TOTAL_SAMPLES) // Total number of samples per block (MUST be power of 2)
 ) wiener_block_stats_inst (
-	.clk(clk),
+	.clk(clk && wiener_block_stats_en),// [LK 10.01.25]
 	.rst_n(rst_n),
 	.start_of_frame(start_of_frame),
 	.end_of_frame(end_of_frame),
@@ -53,7 +55,7 @@ wiener_calc #(
 	.DATA_WIDTH(DATA_WIDTH), 
 	.TOTAL_SAMPLES(TOTAL_SAMPLES) // Total number of samples per block (MUST be power of 2)
   ) wiener_calc_inst ( 
-	.clk(clk), 
+	.clk(clk && wiener_calc_en), // [LK 10.01.25]
 	.rst_n(rst_n), 
 	.stats_ready(variance_ready), 
 	.mean_of_block(mean_out), 
