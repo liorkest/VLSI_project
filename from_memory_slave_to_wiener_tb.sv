@@ -162,7 +162,6 @@ wiener_3_channels #(
 initial clk = 0;
 always #5 clk = ~clk; // 10ns clock period
 
-assign wiener_calc_en = wiener_block_stats_en;
 
 // Testbench logic
 initial begin
@@ -174,7 +173,7 @@ initial begin
 	start_data = 0;
 	// wiener_en = 0;
 	wiener_block_stats_en = 0; // [10.01.25]
-	
+	wiener_calc_en = 1;
 	base_addr_in = 32'h0000_0000;
 	estimated_noise = 0;
 
@@ -192,6 +191,7 @@ initial begin
 	
 	#30;
 	wiener_block_stats_en = 1; // [10.01.25]
+	wiener_calc_en = 1;
 	#5;
 	// reading blocks
 	for(int i=0; i < blocks_per_frame + 2; i++) begin 		
@@ -199,6 +199,7 @@ initial begin
 		for (int j = 0; j < BLOCK_SIZE; j++) begin
 			if (j== 0) begin
 				wiener_block_stats_en = 1; 
+				wiener_calc_en = 1;
 				if (i < blocks_per_frame) 
 					start_data = 1;
 				start_of_frame_wiener = (i==0);
@@ -208,16 +209,28 @@ initial begin
 			end
 			wiener_block_stats_en = 1; 
 			
+			
 			if (j==0) #80;
-			else #80;		
+			else begin
+				#10;	
+				wiener_calc_en= 1;
+				#70;
+			end
 			
 			if (j == BLOCK_SIZE - 1) begin
 				// wiener_block_stats_en = 0;
 				if(i==0) #30;
 				else #30;
 			end else begin
+				/*
 				wiener_block_stats_en = 0; 
+				wiener_calc_en = 0;
 				#40;
+				*/
+				wiener_block_stats_en = 0; 
+				#10;
+				wiener_calc_en = 0;
+				#30;
 			end
 
 
