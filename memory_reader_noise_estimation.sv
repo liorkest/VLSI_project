@@ -22,6 +22,7 @@ module memory_reader_noise_estimation #(
 	input  logic                       arready, //from AXI memory slave
 	input  logic                       rlast, //from AXI memory slave
 	input  logic [ADDR_WIDTH-1:0] 	   base_addr_in,
+	input  logic 					   estimated_noise_ready,
 	
 	output  logic                    start_read,
 	output  logic [ADDR_WIDTH-1:0]   read_addr,
@@ -31,6 +32,7 @@ module memory_reader_noise_estimation #(
 	output  logic [ADDR_WIDTH-1:0]   base_addr_out,
 	output  logic                    noise_estimation_en,
 	output  logic                    start_of_frame,
+	output  logic                    start_data,
 	output  logic                    frame_ready_for_wiener
 );
 
@@ -59,7 +61,7 @@ always_ff @(posedge clk or negedge rst_n) begin
 		start_read <= 0;
 		start_read_flag <= 0;
 		base_addr_out <= 0;
-		//noise_estimation_en <= 0;
+		noise_estimation_en <= 0;
 		read_addr <= 0;
 		addr_holder <= 0;
 		frame_ready_for_wiener <= 0;
@@ -67,17 +69,22 @@ always_ff @(posedge clk or negedge rst_n) begin
 		col_counter <= 0;
 		pixel_x <= 0;
 		pixel_y <= 0;
+		start_of_frame <= 0;
+		start_data <= 0;
 	end else begin
 		state <= next_state;
 		
 		if (state == IDLE) begin
-			//noise_estimation_en <= 0;
+			noise_estimation_en <= 0;
 			read_addr <= 0;
 			frame_ready_for_wiener <= 0;
 			row_counter <= 0;
 			col_counter <= 0;
 			pixel_x <= 0;
 			pixel_y <= 0;
+			start_of_frame <= 0;
+			start_data <= 0;
+			
 			if (next_state == READ_HANDSHAKE) begin
 				curr_base_addr <= base_addr_in;
 				read_addr <= base_addr_in;
@@ -87,20 +94,30 @@ always_ff @(posedge clk or negedge rst_n) begin
 			end
 			
 		end else if (state == READ_HANDSHAKE) begin
+			start_of_frame <= 0;
+			start_data <= 0;
 			if (start_read) begin
 				start_read_flag <= 1;
 				start_read <= 0;
 			end
-			//noise_estimation_en <= 0; // [LS 06.01.25] noise estimation should be enabled only when state is READ
+			noise_estimation_en <= 0; // [LS 06.01.25] noise estimation should be enabled only when state is READ
+			
 			if (next_state == READ) begin
-				//noise_estimation_en <= 1; // [LS 06.01.25] noise estimation should be enabled only when state is READ
+				if (pixel_x == 0 && pixel_y == 0) begin
+					start_data <= 1;
+					noise_estimation_en <= 1; // [LS 06.01.25] noise estimation should be enabled only when state is READ
+					if (row_counter == 0 && col_counter == 0) begin
+						start_of_frame <= 1;
+					end
+				end
 			end			
+		
 		end else if (state == READ) begin
+			start_of_frame <= 0;
+			start_data <= 0;
 			start_read_flag <= 0;
-			// noise_estimation_en <= 1; // [LS 06.01.25] noise estimation should be enabled only when state is READ
-			$display("row_counter < (frame_height >> $clog2(BLOCK_SIZE)) - 1) --->  row_counter < %d", ((frame_height >> $clog2(BLOCK_SIZE)) - 1 ));
-			$display("col_counter < (frame_width >> $clog2(BLOCK_SIZE)) - 1 --->  col_counter < %d", ((frame_width >> $clog2(BLOCK_SIZE) )- 1 ));
-
+			noise_estimation_en <= 1; // [LS 06.01.25] noise estimation should be enabled only when state is READ
+			
 			if (row_counter < (frame_height >> $clog2(BLOCK_SIZE))) begin
 				if (col_counter < (frame_width >> $clog2(BLOCK_SIZE))) begin
 					if (pixel_y < BLOCK_SIZE - 1) begin
@@ -144,27 +161,31 @@ always_ff @(posedge clk or negedge rst_n) begin
 					start_read <= 1;
 				end 
 				read_addr <= addr_holder;
-				//noise_estimation_en <= 0; // [LS 06.01.25] noise estimation should be enabled only when state is READ 
 			end
 			
 		end else if (state == FRAME_READY) begin
-			frame_ready_for_wiener <= 1;
-			base_addr_out <= curr_base_addr;
+			start_of_frame <= 0;
+			start_data <= 0;
 			
+			if (next_state == IDLE) begin
+				base_addr_out <= curr_base_addr;
+				frame_ready_for_wiener <= 1;
+				noise_estimation_en <= 0;
+			end
 		end
 		
 	end
 end
 
 // [LK 08.01.25] changed noise_estimation_en to async signal
-assign noise_estimation_en = (state == READ) || start_of_frame;
+// assign noise_estimation_en = (state == READ) || start_of_frame; // [LS 12.01.25] Back to FSM
 
 always_comb begin
 	next_state = state;
 	read_len = BLOCK_SIZE;
 	read_size = 2;
 	read_burst = 1;
-	start_of_frame = 0;
+	//start_of_frame = 0;
 	case (state)
 		IDLE: begin
 			read_len = 0;
@@ -175,7 +196,7 @@ always_comb begin
 		end
 
 		READ_HANDSHAKE: begin
-			start_of_frame = arready && (pixel_x == 0) && (pixel_y == 0) && (row_counter == 0) && (col_counter == 0); //start_of_frame == 1 only before first pixel
+			//start_of_frame = arready && (pixel_x == 0) && (pixel_y == 0) && (row_counter == 0) && (col_counter == 0); //start_of_frame == 1 only before first pixel
 			if (rvalid) begin
 				next_state = READ;
 			end
@@ -192,7 +213,9 @@ always_comb begin
 		end
 		
 		FRAME_READY: begin
-			next_state = IDLE;
+			if (estimated_noise_ready) begin
+				next_state = IDLE;
+			end
 		end
 
 		default: next_state = IDLE;

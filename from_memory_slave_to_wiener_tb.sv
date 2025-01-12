@@ -62,6 +62,7 @@ logic estimated_noise_ready;
 logic start_data;
 logic wiener_block_stats_en; // [10.01.25]
 logic wiener_calc_en;        // [10.01.25]
+logic [31:0] data_count ; //[LS 12.01.25]
 
 
 memory_reader_wiener #(
@@ -77,13 +78,16 @@ memory_reader_wiener #(
 	.arready(arready),
 	.rlast(rlast),
 	.base_addr_in(base_addr_in),
+	.wiener_calc_data_count(data_count),
 	.start_read(start_read),
 	.read_addr(read_addr),
 	.read_len(read_len),
 	.read_size(read_size),
 	.read_burst(read_burst),
-	//.wiener_en(wiener_en),
-	.start_of_frame(start_of_frame),
+	//.wiener_block_stats_en(wiener_block_stats_en),
+	//.wiener_calc_en(wiener_calc_en),
+	//.start_of_frame(start_of_frame),
+	//.start_data(start_data),
 	.estimated_noise_ready(estimated_noise_ready),
 	.end_of_frame(end_of_frame)
 );
@@ -206,9 +210,8 @@ initial begin
 				#10;
 				start_of_frame_wiener = 0;
 				start_data = 0;
-			end
+			end 
 			wiener_block_stats_en = 1; 
-			
 			
 			if (j==0) #80;
 			else begin

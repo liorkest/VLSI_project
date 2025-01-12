@@ -77,6 +77,7 @@ module from_memory_slave_to_noise_estimation_tb;
 		.arready(arready),
 		.rlast(rlast),
 		.base_addr_in(base_addr_in),
+		.estimated_noise_ready(estimated_noise_ready),
 		.start_read(start_read),
 		.read_addr(read_addr),
 		.read_len(read_len),
@@ -211,6 +212,7 @@ module from_memory_slave_to_noise_estimation_tb;
 					#45;
 				end else if (j==BLOCK_SIZE-1) begin
 					#25;
+					//noise_estimation_en = 0;
 				end
 			end
 		end

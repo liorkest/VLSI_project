@@ -17,21 +17,27 @@ module memory_reader_wiener #(
 	input  logic [15:0]                frame_height, // max value allowed <= 720
 	input  logic [15:0]                frame_width, // max value allowed <= 1280
 	//input  logic [31:0]                blocks_per_frame,
-	//input  logic 					   frame_ready,
+	//input  logic 					   frame_ready, // [LS 12.01.25] Now we have this signal from memory_reader_for_noise estimation as a pulse after estimated_noise_ready 
+													// Maybe use it instead of estimated_noise_ready - functions the same
 	input  logic 					   estimated_noise_ready,
 	input  logic                   	   rvalid, //from AXI memory slave
 	input  logic                       arready, //from AXI memory slave
 	input  logic                       rlast, //from AXI memory slave
 	input  logic [ADDR_WIDTH-1:0] 	   base_addr_in,
+	input  logic [31:0]            	   wiener_calc_data_count,
 	
 	output  logic                    start_read,
 	output  logic [ADDR_WIDTH-1:0]   read_addr,
 	output  logic [31:0]             read_len,
 	output  logic [2:0]              read_size,
 	output  logic [1:0]              read_burst,
-	output  logic                    wiener_en,
+	output  logic                    wiener_block_stats_en,
+	output  logic                    wiener_calc_en,
 	output  logic                    start_of_frame,
-	output  logic					 end_of_frame // [LK 09.01.25] added for clarity - will assert pulse when finished reading frame
+	output  logic                    start_data,
+	output  logic					 end_of_frame, // [LK 09.01.25] added for clarity - will assert pulse when finished reading frame
+	output  logic					 frame_ready_for_output_reader,
+	output  logic                    start_write
 );
 
 logic [15:0] row_counter;
@@ -41,6 +47,7 @@ logic [3:0] pixel_y;
 logic [ADDR_WIDTH-1:0] curr_base_addr;
 logic start_read_flag;
 logic [ADDR_WIDTH-1:0] addr_holder;
+logic [1:0] frame_ready_block_count;
 
 // State machine for handling AXI Stream transactions
 typedef enum logic [1:0] {
@@ -58,23 +65,36 @@ always_ff @(posedge clk or negedge rst_n) begin
 		state <= IDLE;
 		start_read <= 0;
 		start_read_flag <= 0;
+		wiener_block_stats_en <= 0;
+		wiener_calc_en <= 0;
 		read_addr <= 0;
 		addr_holder <= 0;
-		//frame_ready_for_wiener <= 0;
+		frame_ready_for_output_reader <= 0;
 		row_counter <= 0;
 		col_counter <= 0;
 		pixel_x <= 0;
 		pixel_y <= 0;
+		start_of_frame <= 0;
+		end_of_frame <= 0;
+		start_data <= 0;
+		frame_ready_block_count <= 0;
 	end else begin
 		state <= next_state;
 		
 		if (state == IDLE) begin
+			wiener_block_stats_en <= 0;
+			wiener_calc_en <= wiener_block_stats_en;
 			read_addr <= 0;
-			//frame_ready_for_wiener <= 0;
 			row_counter <= 0;
 			col_counter <= 0;
 			pixel_x <= 0;
 			pixel_y <= 0;
+			start_of_frame <= 0;
+			end_of_frame <= 0;
+			start_data <= 0;
+			frame_ready_block_count <= 0;
+			frame_ready_for_output_reader <= 0;
+			
 			if (next_state == READ_HANDSHAKE) begin
 				curr_base_addr <= base_addr_in;
 				read_addr <= base_addr_in;
@@ -84,15 +104,33 @@ always_ff @(posedge clk or negedge rst_n) begin
 			end
 			
 		end else if (state == READ_HANDSHAKE) begin
+			start_of_frame <= 0;
+			start_data <= 0;
 			if (start_read) begin
 				start_read_flag <= 1;
 				start_read <= 0;
-			end		
+			end	
+			wiener_block_stats_en <= 0;
+			wiener_calc_en <= wiener_block_stats_en;
+			
+			if (next_state == READ) begin
+				if (pixel_x == 0 && pixel_y == 0) begin
+					start_data <= 1;
+					wiener_block_stats_en <= 1;
+					wiener_calc_en <= wiener_block_stats_en;
+					if (row_counter == 0 && col_counter == 0) begin
+						start_of_frame <= 1;
+					end
+				end
+			end	
+		
 		end else if (state == READ) begin
+			start_of_frame <= 0;
+			start_data <= 0;
 			start_read_flag <= 0;
-			$display("row_counter < (frame_height >> $clog2(BLOCK_SIZE)) - 1) --->  row_counter < %d", ((frame_height >> $clog2(BLOCK_SIZE)) - 1 ));
-			$display("col_counter < (frame_width >> $clog2(BLOCK_SIZE)) - 1 --->  col_counter < %d", ((frame_width >> $clog2(BLOCK_SIZE) )- 1 ));
-
+			wiener_block_stats_en <= 1;
+			wiener_calc_en <= wiener_block_stats_en;
+			
 			if (row_counter < (frame_height >> $clog2(BLOCK_SIZE))) begin
 				if (col_counter < (frame_width >> $clog2(BLOCK_SIZE))) begin
 					if (pixel_y < BLOCK_SIZE - 1) begin
@@ -135,26 +173,39 @@ always_ff @(posedge clk or negedge rst_n) begin
 					start_read <= 1;
 				end 
 				read_addr <= addr_holder;
+			end else if (next_state == FRAME_READY) begin
+				end_of_frame <= 1;
 			end
 			
-		end /*else if (state == FRAME_READY) begin
-			frame_ready_for_wiener <= 1;
+		end else if (state == FRAME_READY) begin
+			start_of_frame <= 0;
+			start_data <= 0;
 			
-		end*/
+			if (wiener_calc_data_count == BLOCK_SIZE*BLOCK_SIZE) begin
+				frame_ready_block_count <=  frame_ready_block_count + 1;
+			end
+			
+			if (next_state == IDLE) begin
+				frame_ready_for_output_reader <= 1;
+				wiener_block_stats_en <= 0;
+				wiener_calc_en <= wiener_block_stats_en;
+			end
+			end_of_frame <= 0;
+		end
 		
 	end
 end
 
 // [LK 08.01.25] changed noise_estimation_en to async signal
-assign noise_estimation_en = (state == READ) || start_of_frame;
+// assign noise_estimation_en = (state == READ) || start_of_frame; // [LS 12.01.25] Back to FSM
 
 always_comb begin
 	next_state = state;
 	read_len = BLOCK_SIZE;
 	read_size = 2;
 	read_burst = 1;
-	start_of_frame = 0;
-	end_of_frame = 0;
+	// start_of_frame = 0;
+	// end_of_frame = 0;
 	case (state)
 		IDLE: begin
 			read_len = 0;
@@ -165,7 +216,7 @@ always_comb begin
 		end
 
 		READ_HANDSHAKE: begin
-			start_of_frame = arready && (pixel_x == 0) && (pixel_y == 0) && (row_counter == 0) && (col_counter == 0); //start_of_frame == 1 only before first pixel
+			// start_of_frame = arready && (pixel_x == 0) && (pixel_y == 0) && (row_counter == 0) && (col_counter == 0); //start_of_frame == 1 only before first pixel
 			if (rvalid) begin
 				next_state = READ;
 			end
@@ -182,13 +233,28 @@ always_comb begin
 		end
 		
 		FRAME_READY: begin
-			next_state = IDLE;
-			end_of_frame = 1;
+			if (frame_ready_block_count == 3) begin
+				next_state = IDLE;
+			end
+			//end_of_frame = 1;
 		end
 		
 
 		default: next_state = IDLE;
 	endcase
+end
+
+// [LS 12.01.12] - For the output memory master
+always_ff @(posedge clk or negedge rst_n) begin
+	if (!rst_n) begin
+		start_write <= 0;
+	end else if (wiener_calc_data_count == 0 || wiener_calc_data_count == BLOCK_SIZE || wiener_calc_data_count == 2*BLOCK_SIZE || wiener_calc_data_count == 3*BLOCK_SIZE || 
+			wiener_calc_data_count == 4*BLOCK_SIZE || wiener_calc_data_count == 5*BLOCK_SIZE || wiener_calc_data_count == 6*BLOCK_SIZE || wiener_calc_data_count == 7*BLOCK_SIZE ||
+			wiener_calc_data_count == 8*BLOCK_SIZE) begin
+		start_write <= 1;
+	end else begin
+		start_write <= 0;
+	end
 end
 
 endmodule
