@@ -44,7 +44,7 @@ logic [ADDR_WIDTH-1:0] curr_base_addr;
 logic start_read_flag;
 logic [ADDR_WIDTH-1:0] addr_holder;
 
-// State machine for handling AXI Stream transactions
+// State machine for handling AXI Memory transactions
 typedef enum logic [1:0] {
 	IDLE,
 	READ_HANDSHAKE,

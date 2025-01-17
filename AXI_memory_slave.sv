@@ -11,7 +11,8 @@ module AXI_memory_slave #(
 	parameter ADDR_WIDTH = 32,
 	parameter DATA_WIDTH = 32,
 	parameter ID_WIDTH = 4,
-	parameter MEM_SIZE  = 1024
+	parameter MEM_SIZE  = 1024,
+	parameter INIT_OPTION = 1 // 0=[all zeros], 1=[pre-defined 4 blocks values] 
 ) (
 	input                       clk,
 	input                       rst_n,
@@ -96,15 +97,11 @@ module AXI_memory_slave #(
 			read_len <= 0;  // Make sure read_len is reset
 			read_data_count <= 0; // [LK 01.01.24]
 			rlast <= 0;
-			/*
-			// initialize memory option 1
 			for(int i=0; i< MEM_SIZE; i++) begin
-				memory[i] = {8'd0, i[7:0],i[7:0],i[7:0]}; //[LS 06.01.25] easier to see read delay this way
-			end
-			*/
-			// initialize memory option 2 [LK 09.01.25]
-			for(int i=0; i< MEM_SIZE; i++) begin
-				memory[i] = {8'd0,data[i],data[i],data[i]}; 
+				case (INIT_OPTION) 
+					0: memory[i] = 32'd0; 
+					1: memory[i] = {8'd0,data[i],data[i],data[i]}; 
+				endcase
 			end
 			
 		end else begin

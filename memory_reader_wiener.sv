@@ -49,7 +49,7 @@ logic start_read_flag;
 logic [ADDR_WIDTH-1:0] addr_holder;
 logic [1:0] frame_ready_block_count;
 
-// State machine for handling AXI Stream transactions
+// State machine for handling AXI Memory transactions
 typedef enum logic [1:0] {
 	IDLE,
 	READ_HANDSHAKE,

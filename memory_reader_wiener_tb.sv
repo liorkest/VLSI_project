@@ -69,7 +69,7 @@ memory_reader_wiener #(
 	.read_len(read_len),
 	.read_size(read_size),
 	.read_burst(read_burst),
-	.wiener_en(wiener_en),
+	//.wiener_en(wiener_en),
 	.start_of_frame(start_of_frame),
 	.estimated_noise_ready(estimated_noise_ready),
 	.end_of_frame(end_of_frame)

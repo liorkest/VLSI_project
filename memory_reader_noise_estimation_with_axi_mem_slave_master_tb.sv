@@ -111,7 +111,8 @@ module memory_reader_noise_estimation_with_axi_mem_slave_master_tb;
 	AXI_memory_slave #(
 	  .ADDR_WIDTH(ADDR_WIDTH),
 	  .DATA_WIDTH(DATA_WIDTH),
-	  .MEM_SIZE(MEM_SIZE)
+	  .MEM_SIZE(MEM_SIZE),
+	  .INIT_OPTION(1)
 	) AXI_memory_slave_uut (
 	  .clk(clk),
 	  .rst_n(rst_n),
