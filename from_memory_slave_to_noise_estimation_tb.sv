@@ -182,7 +182,7 @@ module from_memory_slave_to_noise_estimation_tb;
 		// Apply reset
 		#20 rst_n = 1;
 		#20;
-		// Test Case 1: Start a new frame
+		// Start a new frame
 		frame_ready = 1;
 		base_addr_in = 32'h0000_0000;
 		#10;
