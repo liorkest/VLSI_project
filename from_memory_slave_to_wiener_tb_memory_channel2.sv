@@ -111,15 +111,15 @@ AXI_memory_master_burst #(
 	//.rid(rid),
 	.rdata(rdata_2),
 	.rresp(rresp_2),
-	.rlast(rlast),
-	.rvalid(rvalid),
-	.rready(rready),
+	.rlast(rlast_2),
+	.rvalid(rvalid_2),
+	.rready(rready_2),
 
-	.start_read(start_read),
-	.read_addr(read_addr),
-	.read_len(read_len),
-	.read_size(read_size),
-	.read_burst(read_burst)
+	.start_read(start_read_2),
+	.read_addr(read_addr_2),
+	.read_len(read_len_2),
+	.read_size(read_size_2),
+	.read_burst(read_burst_2)
 	
 );
 

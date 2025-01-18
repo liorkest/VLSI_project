@@ -8,7 +8,7 @@
 
 
 
-module from_memory_writer_to_noise_estimation;
+module from_memory_writer_to_noise_estimation_and_wiener;
 
 // Parameters
 logic           clk;
@@ -23,6 +23,7 @@ logic [15:0] 	frame_height=8*2;
 logic [15:0]	frame_width=8*2;
 parameter 		TOTAL_SAMPLES = 8*8*4; // total number of pixels in frame
 logic [31:0] 	blocks_per_frame = TOTAL_SAMPLES/(BLOCK_SIZE*BLOCK_SIZE);
+parameter SAMPLES_PER_BLOCK = 64; // total number of pixels in frame
 
 
 logic frame_ready_for_noise_est;
@@ -110,6 +111,49 @@ logic start_of_frame_noise_estimation;
 	// Control signals
 	logic [ID_WIDTH-1:0] write_id=0;
 
+// WIENER SIGNALS
+
+
+
+	logic rvalid_2;
+	logic arready_2;
+	logic rlast_2;
+	logic [ADDR_WIDTH-1:0] base_addr_in_wiener;
+	logic [31:0] len_2;
+
+	logic start_read_2;
+	logic [ADDR_WIDTH-1:0] read_addr_2;
+	logic [31:0] read_len_2;
+	logic [2:0] read_size_2;
+	logic [1:0] read_burst_2;
+	logic [ADDR_WIDTH-1:0] base_addr_out_2;
+	// logic wiener_en;
+	logic start_of_frame_wiener;
+
+
+	// Read Address Channel
+	logic [ADDR_WIDTH-1:0] araddr_2;
+	logic [7:0] arlen_2;
+	logic [2:0] arsize_2;
+	logic [1:0] arburst_2;
+	logic arvalid_2;
+
+	// Read Data Channel
+	logic [DATA_WIDTH-1:0] rdata_2;
+	logic [1:0] rresp_2;
+	logic rready_2;
+
+
+
+	// wiener
+	logic start_data_wiener;
+	logic wiener_block_stats_en; // [10.01.25]
+	logic wiener_calc_en;        // [10.01.25]
+	logic [31:0] data_count ; //[LS 12.01.25]
+	logic [DATA_WIDTH-1:0] data_out_wiener;
+
+
+///
 
 	memory_writer #(
 		.DATA_WIDTH(DATA_WIDTH)
@@ -139,7 +183,7 @@ logic start_of_frame_noise_estimation;
 		.ADDR_WIDTH(ADDR_WIDTH),
 		.DATA_WIDTH(DATA_WIDTH),
 		.ID_WIDTH(ID_WIDTH)
-	) AXI_memory_master_burst_uut (
+	) AXI_memory_master_burst_write (
 		.clk(clk),
 		.resetn(rst_n),
 		
@@ -165,25 +209,6 @@ logic start_of_frame_noise_estimation;
 		.bvalid(bvalid),
 		.bready(bready),
 		
-		/* [commented by LK 01.12.25]
-		// Read Address Channel
-		.arid(arid),
-		.araddr(araddr),
-		.arlen(arlen),
-		.arsize(arsize),
-		.arburst(arburst),
-		.arvalid(arvalid),
-		.arready(arready),
-		
-		// Read Data Channel
-		.rid(rid),
-		.rdata(rdata),
-		.rresp(rresp),
-		.rlast(rlast),
-		.rvalid(rvalid),
-		.rready(rready),
-		*/
-		
 		// Control signals
 		.start_write(start_write),
 		.write_id(write_id),
@@ -194,16 +219,9 @@ logic start_of_frame_noise_estimation;
 		.write_data(write_data),
 		.write_strb(write_strb),
 		.start_read(start_read)
-		/* [commented by LK 01.12.25]
-		, .read_id(read_id),
-		.read_addr(read_addr),
-		.read_len(read_len),
-		.read_size(read_size),
-		.read_burst(read_burst)
-		*/
 	);
 	
-	AXI_memory_slave #(
+	AXI_memory_slave_3channels #(
 		.ADDR_WIDTH(ADDR_WIDTH),
 		.DATA_WIDTH(DATA_WIDTH),
 		.ID_WIDTH(ID_WIDTH),
@@ -240,7 +258,16 @@ logic start_of_frame_noise_estimation;
 		//.rresp(rresp),
 		.rlast(rlast),
 		.rvalid(rvalid),
-		.rready(rready)
+		.rready(rready),
+		
+		.araddr_2(araddr_2),
+		.arlen_2(arlen_2),
+		.arvalid_2(arvalid_2),
+		.arready_2(arready_2),
+		.rdata_2(rdata_2),
+		.rlast_2(rlast_2),
+		.rvalid_2(rvalid_2),
+		.rready_2(rready_2)
 	  );
 
 	
@@ -273,7 +300,7 @@ logic start_of_frame_noise_estimation;
 	AXI_memory_master_burst #(
 		.ADDR_WIDTH(ADDR_WIDTH),
 		.DATA_WIDTH(DATA_WIDTH)
-	) AXI_memory_master_burst_dut (
+	) AXI_memory_master_burst_read_noise_estimation (
 		.clk(clk),
 		.resetn(rst_n),
 		
@@ -326,6 +353,99 @@ logic start_of_frame_noise_estimation;
 	);
 
 
+/////////// WIENER BEGIN
+
+
+
+
+	memory_reader_wiener #(
+		.ADDR_WIDTH(ADDR_WIDTH),
+		.DATA_WIDTH(DATA_WIDTH),
+		.BLOCK_SIZE(BLOCK_SIZE)
+	) memory_reader_wiener_dut (
+		.clk(clk),
+		.rst_n(rst_n),
+		.frame_height(frame_height),
+		.frame_width(frame_width),
+		.rvalid(rvalid_2),
+		.arready(arready_2),
+		.rlast(rlast_2),
+		.base_addr_in(base_addr_in_wiener),
+		.wiener_calc_data_count(data_count),
+		.start_read(start_read_2),
+		.read_addr(read_addr_2),
+		.read_len(read_len_2),
+		.read_size(read_size_2),
+		.read_burst(read_burst_2),
+		//.wiener_block_stats_en(wiener_block_stats_en),
+		//.wiener_calc_en(wiener_calc_en),
+		//.start_of_frame(start_of_frame),
+		//.start_data_wiener(start_data_wiener),
+		.estimated_noise_ready(estimated_noise_ready),
+		.end_of_frame(end_of_frame_wiener)
+	);
+
+	AXI_memory_master_burst #(
+		.ADDR_WIDTH(ADDR_WIDTH),
+		.DATA_WIDTH(DATA_WIDTH)
+	) AXI_memory_master_burst_wiener (
+		.clk(clk),
+		.resetn(rst_n),
+		
+		// Read Address Channel
+		//.arid(arid),
+		.araddr(araddr_2),
+		.arlen(arlen_2),
+		.arsize(arsize_2),
+		.arburst(arburst_2),
+		.arvalid(arvalid_2),
+		.arready(arready_2),
+		
+		// Read Data Channel
+		//.rid(rid),
+		.rdata(rdata_2),
+		.rresp(rresp_2),
+		.rlast(rlast_2),
+		.rvalid(rvalid_2),
+		.rready(rready_2),
+
+		.start_read(start_read_2),
+		.read_addr(read_addr_2),
+		.read_len(read_len_2),
+		.read_size(read_size_2),
+		.read_burst(read_burst_2)
+		
+	);
+
+
+	wiener_3_channels #( 
+		.DATA_WIDTH(DATA_WIDTH), 
+		.TOTAL_SAMPLES(SAMPLES_PER_BLOCK) 
+	  ) wiener_3_channels_dut ( 
+		.clk(clk),
+		.wiener_block_stats_en(wiener_block_stats_en),
+		.wiener_calc_en(wiener_calc_en),
+		.rst_n(rst_n), 
+		.start_of_frame(start_of_frame_wiener),
+		.end_of_frame(end_of_frame_wiener),
+		.noise_variance(estimated_noise), 
+		.data_in(rdata_2), 
+		.start_data(start_data_wiener),
+		.blocks_per_frame(blocks_per_frame), 
+		.data_out(data_out_wiener), 
+		.data_count(data_count)
+	  ); 
+
+
+
+
+
+/////////// WIENER END */
+
+
+
+
+
 	// Clock generation
 	initial begin
 		clk = 1'b0;
@@ -350,6 +470,13 @@ logic start_of_frame_noise_estimation;
 		noise_estimation_en = 0;
 		start_of_frame_noise_estimation = 0;
 		base_addr_in = 32'h0000_0000;
+		// wiener
+		start_of_frame_wiener = 0;
+		start_data_wiener = 0;
+		// wiener_en = 0;
+		wiener_block_stats_en = 0; // [10.01.25]
+		wiener_calc_en = 1;
+		base_addr_in_wiener = 32'h0000_0000;
 		
 		// Reset the system
 		#20;
@@ -407,6 +534,60 @@ logic start_of_frame_noise_estimation;
 		end
 		
 		wait(estimated_noise_ready);
+		
+		base_addr_in_wiener = 32'h0000_0000; // TBD connect base_addr_in_wiener to noise estimation FSM
+		#10;
+		#5;
+		// estimated_noise_ready = 0; [18.01.25] try to use the non-synthetic signal
+		
+		#30;
+		wiener_block_stats_en = 1; // [10.01.25]
+		wiener_calc_en = 1;
+		#5;
+		// reading blocks
+		for(int i=0; i < blocks_per_frame + 2; i++) begin 		
+			// reading line by row
+			for (int j = 0; j < BLOCK_SIZE; j++) begin
+				if (j== 0) begin
+					wiener_block_stats_en = 1; 
+					wiener_calc_en = 1;
+					if (i < blocks_per_frame) 
+						start_data_wiener = 1;
+					start_of_frame_wiener = (i==0);
+					#10;
+					start_of_frame_wiener = 0;
+					start_data_wiener = 0;
+				end 
+				wiener_block_stats_en = 1; 
+				
+				if (j==0) #80;
+				else begin
+					#10;	
+					wiener_calc_en= 1;
+					#70;
+				end
+				
+				if (j == BLOCK_SIZE - 1) begin
+					// wiener_block_stats_en = 0;
+					if(i==0) #30;
+					else #30;
+				end else begin
+					/*
+					wiener_block_stats_en = 0; 
+					wiener_calc_en = 0;
+					#40;
+					*/
+					wiener_block_stats_en = 0; 
+					#10;
+					wiener_calc_en = 0;
+					#30;
+				end
+
+
+			end
+		end
+		
+		
 		#100;
 		$finish;
 	end
