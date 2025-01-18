@@ -6,7 +6,7 @@
  * Description   :
  *------------------------------------------------------------------------------*/
 
-module from_memory_slave_to_wiener_tb;
+module from_memory_slave_to_wiener_tb_memory_channel2;
 
 // Parameters
 parameter ADDR_WIDTH = 32;
@@ -23,38 +23,36 @@ logic [31:0] blocks_per_frame = MEM_SIZE/(BLOCK_SIZE*BLOCK_SIZE);
 logic clk;
 logic rst_n;
 
-logic rvalid;
-logic arready;
-logic rlast;
-logic [ADDR_WIDTH-1:0] base_addr_in;
-logic [31:0] len;
+logic rvalid_2;
+logic arready_2;
+logic rlast_2;
+logic [ADDR_WIDTH-1:0] base_addr_in_wiener;
+logic [31:0] len_2;
 
-logic start_read;
-logic [ADDR_WIDTH-1:0] read_addr;
-logic [31:0] read_len;
-logic [2:0] read_size;
-logic [1:0] read_burst;
-logic [ADDR_WIDTH-1:0] base_addr_out;
+logic start_read_2;
+logic [ADDR_WIDTH-1:0] read_addr_2;
+logic [31:0] read_len_2;
+logic [2:0] read_size_2;
+logic [1:0] read_burst_2;
+logic [ADDR_WIDTH-1:0] base_addr_out_2;
 // logic wiener_en;
 logic start_of_frame_wiener;
 logic frame_ready_for_wiener;
 
 
 // Read Address Channel
-logic [ADDR_WIDTH-1:0] araddr;
-logic [7:0] arlen;
-logic [2:0] arsize;
-logic [1:0] arburst;
-logic arvalid;
+logic [ADDR_WIDTH-1:0] araddr_2;
+logic [7:0] arlen_2;
+logic [2:0] arsize_2;
+logic [1:0] arburst_2;
+logic arvalid_2;
 
 // Read Data Channel
-logic [DATA_WIDTH-1:0] rdata;
-logic [1:0] rresp;
-logic rready;
+logic [DATA_WIDTH-1:0] rdata_2;
+logic [1:0] rresp_2;
+logic rready_2;
 
 
-// RGB mean
-logic [7:0] rgb_mean_out;
 
 // wiener
 logic [2*BYTE_DATA_WIDTH-1:0] estimated_noise;
@@ -63,6 +61,7 @@ logic start_data_wiener;
 logic wiener_block_stats_en; // [10.01.25]
 logic wiener_calc_en;        // [10.01.25]
 logic [31:0] data_count ; //[LS 12.01.25]
+logic [DATA_WIDTH-1:0] data_out_wiener;
 
 
 memory_reader_wiener #(
@@ -74,22 +73,22 @@ memory_reader_wiener #(
 	.rst_n(rst_n),
 	.frame_height(frame_height),
 	.frame_width(frame_width),
-	.rvalid(rvalid),
-	.arready(arready),
-	.rlast(rlast),
-	.base_addr_in(base_addr_in),
+	.rvalid(rvalid_2),
+	.arready(arready_2),
+	.rlast(rlast_2),
+	.base_addr_in(base_addr_in_wiener),
 	.wiener_calc_data_count(data_count),
-	.start_read(start_read),
-	.read_addr(read_addr),
-	.read_len(read_len),
-	.read_size(read_size),
-	.read_burst(read_burst),
+	.start_read(start_read_2),
+	.read_addr(read_addr_2),
+	.read_len(read_len_2),
+	.read_size(read_size_2),
+	.read_burst(read_burst_2),
 	//.wiener_block_stats_en(wiener_block_stats_en),
 	//.wiener_calc_en(wiener_calc_en),
 	//.start_of_frame(start_of_frame),
-	//.start_data(start_data),
+	//.start_data_wiener(start_data_wiener),
 	.estimated_noise_ready(estimated_noise_ready),
-	.end_of_frame(end_of_frame)
+	.end_of_frame(end_of_frame_wiener)
 );
 
 AXI_memory_master_burst #(
@@ -101,17 +100,17 @@ AXI_memory_master_burst #(
 	
 	// Read Address Channel
 	//.arid(arid),
-	.araddr(araddr),
-	.arlen(arlen),
-	.arsize(arsize),
-	.arburst(arburst),
-	.arvalid(arvalid),
-	.arready(arready),
+	.araddr(araddr_2),
+	.arlen(arlen_2),
+	.arsize(arsize_2),
+	.arburst(arburst_2),
+	.arvalid(arvalid_2),
+	.arready(arready_2),
 	
 	// Read Data Channel
 	//.rid(rid),
-	.rdata(rdata),
-	.rresp(rresp),
+	.rdata(rdata_2),
+	.rresp(rresp_2),
 	.rlast(rlast),
 	.rvalid(rvalid),
 	.rready(rready),
@@ -125,7 +124,7 @@ AXI_memory_master_burst #(
 );
 
 // Instantiate the AXI memory slave
-AXI_memory_slave #(
+AXI_memory_slave_3channels #(
   .ADDR_WIDTH(ADDR_WIDTH),
   .DATA_WIDTH(DATA_WIDTH),
   .MEM_SIZE(MEM_SIZE)
@@ -133,14 +132,14 @@ AXI_memory_slave #(
   .clk(clk),
   .rst_n(rst_n),
 
-  .araddr(araddr),
-  .arlen(arlen),
-  .arvalid(arvalid),
-  .arready(arready),
-  .rdata(rdata),
-  .rlast(rlast),
-  .rvalid(rvalid),
-  .rready(rready)
+  .araddr_2(araddr_2),
+  .arlen_2(arlen_2),
+  .arvalid_2(arvalid_2),
+  .arready_2(arready_2),
+  .rdata_2(rdata_2),
+  .rlast_2(rlast_2),
+  .rvalid_2(rvalid_2),
+  .rready_2(rready_2)
 );
 
 
@@ -153,12 +152,12 @@ wiener_3_channels #(
 	.wiener_calc_en(wiener_calc_en),
 	.rst_n(rst_n), 
 	.start_of_frame(start_of_frame_wiener),
-	.end_of_frame(end_of_frame),
+	.end_of_frame(end_of_frame_wiener),
 	.noise_variance(estimated_noise), 
-	.data_in(rdata), 
+	.data_in(rdata_2), 
 	.start_data(start_data_wiener),
 	.blocks_per_frame(blocks_per_frame), 
-	.data_out(data_out), 
+	.data_out(data_out_wiener), 
 	.data_count(data_count)
   ); 
 
@@ -178,7 +177,7 @@ initial begin
 	// wiener_en = 0;
 	wiener_block_stats_en = 0; // [10.01.25]
 	wiener_calc_en = 1;
-	base_addr_in = 32'h0000_0000;
+	base_addr_in_wiener = 32'h0000_0000;
 	estimated_noise = 0;
 
 	// Apply reset
@@ -189,7 +188,7 @@ initial begin
 	//Start a new frame
 	estimated_noise_ready = 1;
 	estimated_noise = 539;
-	base_addr_in = 32'h0000_0000;
+	base_addr_in_wiener = 32'h0000_0000;
 	#10;
 	estimated_noise_ready = 0;
 	

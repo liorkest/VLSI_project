@@ -74,7 +74,8 @@ AXI_memory_slave_3channels #(
   .ADDR_WIDTH(ADDR_WIDTH),
   .DATA_WIDTH(DATA_WIDTH),
   .ID_WIDTH(ID_WIDTH),
-  .MEM_SIZE(MEM_SIZE)
+  .MEM_SIZE(MEM_SIZE),
+  .INIT_OPTION(1)
 ) mem_read_uut (
   .clk(clk),
   .rst_n(rst_n),
