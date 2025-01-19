@@ -48,6 +48,8 @@ logic [ADDR_WIDTH-1:0] curr_base_addr;
 logic start_read_flag;
 logic [ADDR_WIDTH-1:0] addr_holder;
 logic [1:0] frame_ready_block_count;
+logic [7:0] start_write_counter;
+
 
 // State machine for handling AXI Memory transactions
 typedef enum logic [1:0] {
@@ -69,7 +71,7 @@ always_ff @(posedge clk or negedge rst_n) begin
 		wiener_calc_en <= 0;
 		read_addr <= 0;
 		addr_holder <= 0;
-		frame_ready_for_output_reader <= 0;
+		// frame_ready_for_output_reader <= 0;
 		row_counter <= 0;
 		col_counter <= 0;
 		pixel_x <= 0;
@@ -93,7 +95,7 @@ always_ff @(posedge clk or negedge rst_n) begin
 			end_of_frame <= 0;
 			start_data <= 0;
 			frame_ready_block_count <= 0;
-			frame_ready_for_output_reader <= 0;
+			// frame_ready_for_output_reader <= 0;
 			
 			if (next_state == READ_HANDSHAKE) begin
 				curr_base_addr <= base_addr_in;
@@ -186,7 +188,7 @@ always_ff @(posedge clk or negedge rst_n) begin
 			end
 			
 			if (next_state == IDLE) begin
-				frame_ready_for_output_reader <= 1;
+				// frame_ready_for_output_reader <= 1;
 				wiener_block_stats_en <= 0;
 				wiener_calc_en <= wiener_block_stats_en;
 			end
@@ -236,7 +238,6 @@ always_comb begin
 			if (frame_ready_block_count == 3) begin
 				next_state = IDLE;
 			end
-			//end_of_frame = 1;
 		end
 		
 
@@ -248,12 +249,20 @@ end
 always_ff @(posedge clk or negedge rst_n) begin
 	if (!rst_n) begin
 		start_write <= 0;
+		start_write_counter <= 0;
 	end else if (wiener_calc_data_count == 0 || wiener_calc_data_count == BLOCK_SIZE || wiener_calc_data_count == 2*BLOCK_SIZE || wiener_calc_data_count == 3*BLOCK_SIZE || 
 			wiener_calc_data_count == 4*BLOCK_SIZE || wiener_calc_data_count == 5*BLOCK_SIZE || wiener_calc_data_count == 6*BLOCK_SIZE || wiener_calc_data_count == 7*BLOCK_SIZE ||
 			wiener_calc_data_count == 8*BLOCK_SIZE) begin
-		start_write <= 1;
+		if (start_write_counter == 0) begin
+			start_write <= 1;
+			start_write_counter <= start_write_counter + 1;
+		end else begin
+			start_write <= 0;
+			start_write_counter <= start_write_counter + 1;
+		end	
 	end else begin
 		start_write <= 0;
+		start_write_counter <= 0;
 	end
 end
 

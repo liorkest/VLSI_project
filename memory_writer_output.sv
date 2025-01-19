@@ -16,17 +16,12 @@ module memory_writer_output #(
 	input  logic [31:0]                pixels_per_frame, // max value allowed: 1280*720
 	input  logic [15:0]                frame_height, // max value allowed <= 720
 	input  logic [15:0]                frame_width, // max value allowed <= 1280
-	input  logic [31:0]				   wiener_calc_data_count,
 	input  logic                       start_write_in,
 	input  logic [31:0]				   data_in,
-
-	/*// AXI Stream slave interface
-	input  logic [DATA_WIDTH-1:0]      s_axis_tdata, // Data signal
-	input  logic                       s_axis_tvalid,// Valid signal        
-	input  logic                       s_axis_tlast, // Last signal - end of line
-	input  logic                       s_axis_tuser, // User custom signal - start of frame
-	output logic   					   s_axis_tready,
-	*/
+	
+	// from AXI_memory
+	input  logic                     wvalid, 
+	input  logic                     wlast,
 	
 	// to AXI_memory
 	output  logic                    start_write_out,
@@ -42,10 +37,8 @@ module memory_writer_output #(
 );
 
 logic [1:0] frame_count; // 0,1,2 values
-logic [31:0] line_count;
-logic [15:0] pixels_in_line_count;
-assign frame_base_addr =  1 * pixels_per_frame * frame_count; // [LK 06.01.25] changer from (1 << write_size) to 1
-
+logic [31:0] frame_base_addr;
+assign frame_base_addr = pixels_per_frame * frame_count; 
 logic [15:0] row_counter;
 logic [15:0] col_counter;
 logic [3:0] pixel_x;
@@ -53,6 +46,9 @@ logic [3:0] pixel_y;
 logic [ADDR_WIDTH-1:0] curr_base_addr;
 logic start_write_flag;
 logic [ADDR_WIDTH-1:0] addr_holder;
+logic frame_ready_flag;
+
+assign write_data = data_in;
 
 // State machine for handling AXI Memory transactions
 typedef enum logic [1:0] {
@@ -68,14 +64,18 @@ state_t state, next_state;
 		always_ff @(posedge clk or negedge rst_n) begin
 			if (!rst_n) begin
 				state <= IDLE;
+				frame_count <= 0;
 				start_write_out <= 0;
 				start_write_flag <= 0;
+				base_addr_out <= 0;
 				write_addr <= 0;
 				addr_holder <= 0;
 				row_counter <= 0;
 				col_counter <= 0;
 				pixel_x <= 0;
 				pixel_y <= 0;
+				frame_ready <= 0;
+				frame_ready_flag <= 0;
 			end else begin
 				state <= next_state;
 				
@@ -88,19 +88,22 @@ state_t state, next_state;
 					col_counter <= 0;
 					pixel_x <= 0;
 					pixel_y <= 0;
+					frame_ready <= 0;
+					frame_ready_flag <= 0;
 					
 					if (next_state == WRITE_HANDSHAKE) begin
 						curr_base_addr <= frame_base_addr;
 						write_addr <= frame_base_addr;
-						if (!start_write_flag) begin
-							start_write <= 1;
-						end
+						start_write_out <= 1;
+						start_write_flag <= 1;
 					end
 					
 				end else if (state == WRITE_HANDSHAKE) begin
-					if (start_write) begin
+					if (!start_write_flag) begin
+						start_write_out <= 1;
 						start_write_flag <= 1;
-						start_write <= 0;
+						end else begin
+						start_write_out <= 0;
 					end		
 				
 				end else if (state == WRITE) begin
@@ -143,122 +146,69 @@ state_t state, next_state;
 						end
 					end
 
-					if (next_state == READ_HANDSHAKE) begin
-						if (!start_read_flag) begin
-							start_read <= 1;
+					if (next_state == WRITE_HANDSHAKE) begin
+						if (!start_write_flag) begin
+							start_write_out <= 1;
 						end 
-						read_addr <= addr_holder;
+						write_addr <= addr_holder;
 					end else if (next_state == FRAME_READY) begin
-						end_of_frame <= 1;
+						frame_ready <= 1;
 					end
 					
 				end else if (state == FRAME_READY) begin
-					start_of_frame <= 0;
-					start_data <= 0;
-					
-					if (wiener_calc_data_count == BLOCK_SIZE*BLOCK_SIZE) begin
-						frame_ready_block_count <=  frame_ready_block_count + 1;
+					if (frame_ready_flag) begin
+						frame_ready <= 0;
+					end else begin
+						frame_ready_flag <= 1;
+						frame_count <= frame_count + 1;
+						if (frame_count == 2) begin
+							frame_count <= 0;
+						end 
 					end
-					
-					if (next_state == IDLE) begin
-						frame_ready_for_output_reader <= 1;
-						wiener_block_stats_en <= 0;
-						wiener_calc_en <= wiener_block_stats_en;
-					end
-					end_of_frame <= 0;
+					base_addr_out <= curr_base_addr;
 				end
 				
 			end
 		end
-
-
-// State machine logic
-always_ff @(posedge clk or negedge rst_n) begin
-	if (!rst_n) begin
-		state <= IDLE;
-		line_count <= 0;
-		frame_count <= 0;
-		pixels_in_line_count <= 0;
-		frame_ready <= 0;
-		write_addr <= 0;
-		base_addr_out <= 0;
-	end else begin
-		state <= next_state;
 		
-		if (state == IDLE) begin
-			frame_ready <= 0;
-			base_addr_out <= base_addr;
-			write_addr <= base_addr;
-			if(next_state == RECEIVE) begin // starting new frame
-				pixels_in_line_count <= pixels_in_line_count + 1;
-			end
-			
-		end else if (state == RECEIVE) begin
-			pixels_in_line_count <= pixels_in_line_count + 1;
-			if (s_axis_tlast && line_count < frame_height) begin
-				line_count <= line_count + 1;
-			end 
-			
-			if (s_axis_tlast) begin
-				pixels_in_line_count <= 0;
-			end
-		end else if (state == FRAME_READY) begin
-			frame_ready <= 1;
-			line_count <= 0;
-			pixels_in_line_count <= 0; // [LS 04.01.25]
-			frame_count <= frame_count + 1;
-			if (line_count == frame_height && frame_count == 2) begin
-				frame_count <= 0;
-			end
-			
-		end
-		
-	end
-end
-
-
 always_comb begin
-	next_state = state;  
-	start_write = 0;
+	next_state = state; 
 	write_strb = 4'b1111;
 	write_burst = 1;
-	// write_data = 0; commented out [LK 01.01.25]
 	write_size = 2;
-	write_len = pixels_per_frame;
-	tdata_shift_en = 0;//[LK 01.01.25]
+	write_len = BLOCK_SIZE;
 	case (state)
 		IDLE: begin
-			write_len = 0; // [LS 04.01.25] added so last pixel won't be written again in the next address
-			write_burst = 0; // [LS 04.01.25] added so last pixel won't be written again in the next address
-			if (s_axis_tready_logic) begin
-				next_state = RECEIVE;
-				start_write = 1;
-				tdata_shift_en = 1;//[LK 01.01.25]
+			write_len = 0; 
+			write_burst = 0; 
+			if (start_write_in) begin
+				next_state = WRITE_HANDSHAKE;
 			end
 		end
-
-		RECEIVE: begin
-			// write_data = s_axis_tdata; [removed LK 1.1.25]
-			tdata_shift_en = 1;//[LK 01.01.25]
 			
-			/*              // [LK 01.01.25] changed because data is now at falling edge 
-			if (!s_axis_tvalid && line_count == frame_height-1 && pixels_in_line_count == frame_width-1) begin
-				next_state = FRAME_READY;
-			end
-			*/
-			if (!s_axis_tvalid && line_count == frame_height) begin
-				next_state = FRAME_READY;
+		WRITE_HANDSHAKE: begin
+			if (wvalid) begin
+				next_state = WRITE;
 			end
 		end
 		
-		FRAME_READY: begin
-			next_state = IDLE;
-			tdata_shift_en = 1;//[LK 01.01.25]
+		WRITE: begin
+			if (wlast && (pixel_x == BLOCK_SIZE-1) && (pixel_y == BLOCK_SIZE-1) && (row_counter == (frame_height >> $clog2(BLOCK_SIZE))-1) 
+					&& (col_counter == (frame_width >> $clog2(BLOCK_SIZE))-1)) begin
+				next_state = FRAME_READY;
+			end else if (wlast) begin
+				next_state = WRITE_HANDSHAKE;
+			end
 		end
-
+				
+		FRAME_READY: begin
+			if (frame_ready_flag) begin
+				next_state = IDLE;
+			end
+		end
+			
 		default: next_state = IDLE;
 	endcase
 end
-
 
 endmodule

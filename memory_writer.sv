@@ -40,7 +40,7 @@ logic [31:0] base_addr ;
 logic [1:0] frame_count; // 0,1,2 values
 logic [31:0] line_count;
 logic [15:0] pixels_in_line_count;
-assign base_addr =  1 * pixels_per_frame * frame_count; // [LK 06.01.25] changer from (1 << write_size) to 1
+assign base_addr = pixels_per_frame * frame_count; // [LK 06.01.25] changer from (1 << write_size) to 1
 logic s_axis_tready_logic;
 logic tdata_shift_en; // [LK 01.01.25]
 assign s_axis_tready = s_axis_tready_logic;
