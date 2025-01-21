@@ -76,7 +76,6 @@ module from_memory_slave_to_noise_estimation_tb;
 		.rvalid(rvalid),
 		.arready(arready),
 		.rlast(rlast),
-		.base_addr_in(base_addr_in),
 		.estimated_noise_ready(estimated_noise_ready),
 		.start_read(start_read),
 		.read_addr(read_addr),

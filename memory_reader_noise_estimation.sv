@@ -21,7 +21,7 @@ module memory_reader_noise_estimation #(
 	input  logic                   	   rvalid, //from AXI memory slave
 	input  logic                       arready, //from AXI memory slave
 	input  logic                       rlast, //from AXI memory slave
-	input  logic [ADDR_WIDTH-1:0] 	   base_addr_in,
+	// input  logic [ADDR_WIDTH-1:0] 	   base_addr_in, [LK 21.12.25] moved this to be internal net
 	input  logic 					   estimated_noise_ready,
 	
 	output  logic                    start_read,
@@ -43,6 +43,9 @@ logic [3:0] pixel_y;
 logic [ADDR_WIDTH-1:0] curr_base_addr;
 logic start_read_flag;
 logic [ADDR_WIDTH-1:0] addr_holder;
+
+logic [ADDR_WIDTH-1:0] 	   base_addr_in;//  [LK 21.12.25] moved this to be internal net
+assign 		base_addr_in = 0;
 
 // State machine for handling AXI Memory transactions
 typedef enum logic [1:0] {
