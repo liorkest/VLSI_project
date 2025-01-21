@@ -9,8 +9,7 @@
 
 
 module TOP_AXI_stream_memory_noise_estimation_wiener_tb #(
-// Parameters
-
+// Parameters of TB
 parameter 		BYTE_DATA_WIDTH = 8,
 parameter 		BLOCK_SIZE = 8,
 parameter 		DATA_WIDTH = 32,
@@ -19,9 +18,7 @@ parameter		MEM_SIZE = 256,
 parameter 		ADDR_WIDTH = 32,
 parameter 		TOTAL_SAMPLES = 8*8*4, // total number of pixels in frame
 parameter 		SAMPLES_PER_BLOCK = 64// total number of pixels in frame
-) (
-		
-);
+) ();
 
 logic           clk;
 logic           rst_n;
@@ -47,8 +44,45 @@ logic wiener_block_stats_en;
 logic wiener_calc_en;       
 logic [31:0] data_count ; 
 logic [DATA_WIDTH-1:0] data_out_wiener;
+
+TOP_AXI_stream_memory_noise_estimation_wiener #(
+	.BYTE_DATA_WIDTH(BYTE_DATA_WIDTH),
+	.BLOCK_SIZE(BLOCK_SIZE),
+	.DATA_WIDTH(DATA_WIDTH),
+	.ID_WIDTH(ID_WIDTH),
+	.MEM_SIZE(MEM_SIZE),
+	.ADDR_WIDTH(ADDR_WIDTH),
+	.TOTAL_SAMPLES(TOTAL_SAMPLES),
+	.SAMPLES_PER_BLOCK(SAMPLES_PER_BLOCK)
+) TOP_AXI_stream_memory_noise_estimation_wiener_inst (
+	.clk(clk),                                    // Clock signal
+	.rst_n(rst_n),                                // Active-low reset
+	.frame_height(frame_height),                  // Frame height
+	.frame_width(frame_width),                    // Frame width
+	.blocks_per_frame(blocks_per_frame),          // Number of blocks per frame
+	.pixels_per_frame(pixels_per_frame),          // Number of pixels per frame
+	.s_axis_tdata(s_axis_tdata),                  // Input data stream
+	.s_axis_tvalid(s_axis_tvalid),                // Valid signal for input stream
+	.s_axis_tlast(s_axis_tlast),                  // Last signal for input stream
+	.s_axis_tready(s_axis_tready),                // Ready signal for input stream
+	.s_axis_tuser(s_axis_tuser),                  // User signal for input stream
+	.rlast(rlast),                                // Last signal for result stream
+	.noise_estimation_en(noise_estimation_en),    // Enable signal for noise estimation
+	.start_data_noise_est(start_data_noise_est),  // Start signal for data noise estimation
+	.start_of_frame_noise_estimation(start_of_frame_noise_estimation), // Start of frame signal
+	.estimated_noise(estimated_noise),            // Estimated noise data
+	.estimated_noise_ready(estimated_noise_ready), // Signal indicating noise estimation is ready
+	.start_of_frame_wiener(start_of_frame_wiener), // Start of frame signal for Wiener filter
+	.frame_ready_for_noise_est(frame_ready_for_noise_est), // Frame ready signal for noise estimation
+	.start_data_wiener(start_data_wiener),        // Start signal for Wiener filter data
+	.wiener_block_stats_en(wiener_block_stats_en), // Enable signal for Wiener block stats
+	.wiener_calc_en(wiener_calc_en),               // Enable signal for Wiener calculation
+	.data_count(data_count),                       // Data count
+	.data_out_wiener(data_out_wiener)              // Output data after Wiener filter
+);
+
+
 	// Clock generation
-	
 	initial begin
 		clk = 1'b0;
 		forever #5 clk = ~clk; // 100MHz clock
@@ -73,7 +107,6 @@ logic [DATA_WIDTH-1:0] data_out_wiener;
 		start_data_noise_est = 0;
 		noise_estimation_en = 0;
 		start_of_frame_noise_estimation = 0;
-		base_addr_in = 32'h0000_0000;
 		// wiener
 		start_of_frame_wiener = 0;
 		start_data_wiener = 0;

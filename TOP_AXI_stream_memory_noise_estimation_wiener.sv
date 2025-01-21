@@ -29,21 +29,21 @@ parameter 		SAMPLES_PER_BLOCK = 64// total number of pixels in frame
 	input logic [DATA_WIDTH-1:0] s_axis_tdata, // Input data stream
 	input logic s_axis_tvalid,                // Valid signal for input stream
 	input logic s_axis_tlast,                 // Last signal for input stream
-	input logic s_axis_tready,                // Ready signal for input stream
+	output logic s_axis_tready,                // Ready signal for input stream
 	input logic s_axis_tuser,                 // User signal for input stream
-	input logic rlast,                        // Last signal for result stream
+	output logic rlast,                        // Last signal for result stream
 	input logic noise_estimation_en,          // Enable signal for noise estimation
 	input logic start_data_noise_est,         // Start signal for data noise estimation
 	input logic start_of_frame_noise_estimation, // Start of frame signal for noise estimation
-	input logic [2*BYTE_DATA_WIDTH-1:0] estimated_noise, // Estimated noise data
-	input logic estimated_noise_ready,        // Signal indicating noise estimation is ready
+	output logic [2*BYTE_DATA_WIDTH-1:0] estimated_noise, // Estimated noise data
+	output logic estimated_noise_ready,        // Signal indicating noise estimation is ready
 	input logic start_of_frame_wiener,        // Start of frame signal for Wiener filter
-	input logic frame_ready_for_noise_est,    // Frame ready signal for noise estimation
+	output logic frame_ready_for_noise_est,    // Frame ready signal for noise estimation
 	input logic start_data_wiener,            // Start signal for Wiener filter data
 	input logic wiener_block_stats_en,        // Enable signal for Wiener block stats
 	input logic wiener_calc_en,               // Enable signal for Wiener calculation
-	input logic [31:0] data_count,            // Data count
-	input logic [DATA_WIDTH-1:0] data_out_wiener // Output data after Wiener filter
+	output logic [31:0] data_count,            // Data count
+	output logic [DATA_WIDTH-1:0] data_out_wiener // Output data after Wiener filter
 
 );
 
@@ -63,6 +63,7 @@ logic [ADDR_WIDTH-1:0] base_addr_out_memory_writer;
 logic [ADDR_WIDTH-1:0] base_addr_out_noise_est;
 logic start_of_frame;
 logic frame_ready_for_wiener;
+logic start_write;
 
 // Read Address Channel
 logic [ADDR_WIDTH-1:0] araddr;
@@ -259,7 +260,7 @@ logic [7:0] rgb_mean_out;
 		.rvalid(rvalid),
 		.arready(arready),
 		.rlast(rlast),
-		//.base_addr_in(base_addr_in),
+		.base_addr_in(base_addr_out_memory_writer),
 		.estimated_noise_ready(estimated_noise_ready),
 		.start_read(start_read),
 		.read_addr(read_addr),
@@ -345,7 +346,7 @@ logic [7:0] rgb_mean_out;
 		.rvalid(rvalid_2),
 		.arready(arready_2),
 		.rlast(rlast_2),
-		.base_addr_in(base_addr_in_wiener),
+		.base_addr_in(base_addr_out_noise_est),
 		.wiener_calc_data_count(data_count),
 		.start_read(start_read_2),
 		.read_addr(read_addr_2),

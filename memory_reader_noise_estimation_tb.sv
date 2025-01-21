@@ -64,7 +64,6 @@ module memory_reader_noise_estimation_tb;
 		.rvalid(rvalid),
 		.arready(arready),
 		.rlast(rlast),
-		.base_addr_in(base_addr_in),
 		.start_read(start_read),
 		.read_addr(read_addr),
 		.read_len(read_len),
