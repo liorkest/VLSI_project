@@ -8,7 +8,7 @@
 
 
 
-module TOP_AXI_stream_memory_noise_estimation_wiener_tb #(
+module TOP_AXI_stream_memory_noise_estimation_wiener_image_tb #(
 // Parameters of TB
 parameter 		BYTE_DATA_WIDTH = 8,
 parameter 		BLOCK_SIZE = 8,
