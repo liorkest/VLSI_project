@@ -34,6 +34,6 @@ def hex_to_bmp(input_hex, output_bmp, width, height):
 
 
 # Assuming the hex file is 'output.hex' and the image dimensions are 480x360
-hex_to_bmp('output_wiener.txt', 'output_wiener.bmp', 480, 360)
+hex_to_bmp('output_wiener_reordered.hex', 'output_wiener.bmp', 480, 360)
 
 
