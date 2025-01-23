@@ -42,7 +42,7 @@ DW_div divider (.*);
 assign a = (variance_of_block >= noise_variance) ? 32'(variance_of_block - noise_variance) << 2*DATA_WIDTH : 32'(noise_variance - variance_of_block) << 2*DATA_WIDTH; // adjust to fixed point
 assign b = (variance_of_block == 0) ? 32'b1 : 32'(variance_of_block);
 
-logic [3*DATA_WIDTH-1:0]  data_out_unclipped;
+logic signed [31:0] data_out_unclipped;
 logic quotient_sign;
 logic data_mean_diff_sign;
 logic [DATA_WIDTH-1:0] abs_data_mean_diff;
@@ -116,8 +116,10 @@ always_ff @(posedge clk or negedge rst_n) begin
 		// clipping 0-255 range            // [19.12.24] moved to end of code
 		if (data_out_unclipped < 0) begin
 			data_out <= 0; 
+			$display("Unclipped: %d, Clipped: %d\n",data_out_unclipped,  0);
 		end	else if (data_out_unclipped > 255) begin
 				data_out <= 255; 
+				$display("Unclipped: %d, Clipped: %d\n",data_out_unclipped,  255);
 		end else begin
 			data_out <= data_out_unclipped[DATA_WIDTH-1:0];
 		end
