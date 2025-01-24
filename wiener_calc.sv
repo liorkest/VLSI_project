@@ -116,10 +116,10 @@ always_ff @(posedge clk or negedge rst_n) begin
 		// clipping 0-255 range            // [19.12.24] moved to end of code
 		if (data_out_unclipped < 0) begin
 			data_out <= 0; 
-			$display("Unclipped: %d, Clipped: %d\n",data_out_unclipped,  0);
+			//$display("Unclipped: %d, Clipped: %d\n",data_out_unclipped,  0);
 		end	else if (data_out_unclipped > 255) begin
 				data_out <= 255; 
-				$display("Unclipped: %d, Clipped: %d\n",data_out_unclipped,  255);
+				//$display("Unclipped: %d, Clipped: %d\n",data_out_unclipped,  255);
 		end else begin
 			data_out <= data_out_unclipped[DATA_WIDTH-1:0];
 		end

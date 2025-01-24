@@ -320,7 +320,6 @@ logic [7:0] rgb_mean_out;
 		.clk(clk & noise_estimation_en), 
 		.rst_n(rst_n),
 		.start_of_frame(start_of_frame_noise_estimation), //08.01.25
-		//.end_of_frame(end_of_frame), ??????
 		.data_in(rgb_mean_out),
 		.start_data(start_data_noise_est),  
 		.blocks_per_frame(blocks_per_frame),

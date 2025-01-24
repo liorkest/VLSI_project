@@ -1,3 +1,4 @@
+import argparse
 from PIL import Image
 
 def hex_to_bmp(input_hex, output_bmp, width, height):
@@ -30,10 +31,26 @@ def hex_to_bmp(input_hex, output_bmp, width, height):
     
     # Save the image as a BMP file
     img.save(output_bmp)
-    print("Image saved as " + output_bmp)
+    print("Image saved as "+output_bmp)
 
 
-# Assuming the hex file is 'output.hex' and the image dimensions are 480x360
-hex_to_bmp('output_wiener_reordered.hex', 'output_wiener.bmp', 480, 360)
+def main():
+    # Set up the argument parser
+    parser = argparse.ArgumentParser(description="Convert a hex file to a BMP image.")
+    
+    # Define the arguments (input hex file, output BMP file, width, height)
+    parser.add_argument("input_hex", help="Input hex file with pixel data.")
+    parser.add_argument("output_bmp", help="Output BMP file name.")
+    parser.add_argument("width", type=int, help="Width of the image.")
+    parser.add_argument("height", type=int, help="Height of the image.")
+    
+    # Parse the arguments
+    args = parser.parse_args()
 
+    # Call the hex_to_bmp function with the provided arguments
+    hex_to_bmp(args.input_hex, args.output_bmp, args.width, args.height)
+
+
+if __name__ == "__main__":
+    main()
 

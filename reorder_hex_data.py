@@ -1,3 +1,5 @@
+import argparse
+
 def rearrange_pixels(input_file, output_file, width, block_size=8):
     """
     Rearranges pixels from blocks to line-by-line order.
@@ -27,9 +29,13 @@ def rearrange_pixels(input_file, output_file, width, block_size=8):
     with open(output_file, "w") as f:
         f.write("\n".join(rearranged))
 
-# Run function:
-image_width = 480  # Adjust this
-input_hex = 'output_wiener.hex'
-output_hex = 'output_wiener_reordered.hex'
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Rearrange pixels from blocks to line-by-line order in a hex file.")
+    parser.add_argument("input_file", type=str, help="Path to the input hex file.")
+    parser.add_argument("output_file", type=str, help="Path to save the rearranged hex file.")
+    parser.add_argument("width", type=int, help="Image width in pixels.")
 
-rearrange_pixels(input_hex, output_hex, image_width)
+    args = parser.parse_args()
+
+    rearrange_pixels(args.input_file, args.output_file, args.width)
+
