@@ -48,56 +48,62 @@ module AXI_stream_master #(
 	end
 
 	always_comb begin
+		// Default values
 		next_state = state;
 		m_axis_tvalid = 1'b0;
-		m_axis_tlast = 1'b0;
-		m_axis_tdata = 32'b0;
-		m_axis_tuser = 1'b0; 
-
+		m_axis_tdata = data_reg;
+		m_axis_tlast = 1'b0;  // Default to de-assert
+		m_axis_tuser = 1'b0;  // Default to de-assert
 
 		case (state)
-			IDLE: begin
-				if (valid_in &&  m_axis_tready) begin
-					m_axis_tvalid = 1'b1;
-					next_state = SEND;
-				end
+		  IDLE: begin
+			if (valid_in) begin
+			  next_state = SEND;  // Transition to SEND when valid data is available
 			end
+		  end
 
-			SEND: begin
-				m_axis_tvalid = 1'b1;
-				m_axis_tdata = data_reg;
-				m_axis_tlast = last_reg; // Set last signal if it's the last transfer
-				m_axis_tuser = user_reg; // Indicate start of frame
-				
-				if (!m_axis_tready || !valid_in) begin
-						next_state = IDLE;  // Go back to IDLE after transfer finished
-				end
+		  SEND: begin
+			m_axis_tvalid = 1'b1;  // Assert valid signal
+			m_axis_tdata = data_reg;
+			m_axis_tlast = last_reg; // Pass last_reg value to m_axis_tlast
+			m_axis_tuser = user_reg; // Pass user_reg value to m_axis_tuser
+
+			if (m_axis_tready) begin
+			  if (last_reg) begin
+				next_state = IDLE;  // Transition to IDLE if this is the last transfer
+			  end else if (!valid_in) begin
+				next_state = IDLE;  // Transition to IDLE if no more data is available
+			  end
 			end
+		  end
 
-			default: next_state = IDLE;
+		  default: next_state = IDLE;
 		endcase
-	end
-
-	// Data generation logic (for testing purposes)
+	  end
+	
 	always_ff @(posedge clk or negedge rst_n) begin
-		
 		if (!rst_n) begin
-			data_reg <= 32'd0;
-			last_reg <= 1'b0;
-			user_reg <= 1'b0;
+		  data_reg <= 32'd0;
+		  last_reg <= 1'b0;
+		  user_reg <= 1'b0;
 		end else begin
-			if (state == SEND) begin
-				data_reg <= data_in;
-				last_reg <= last_in;
-				user_reg <= user_in;
-				end else begin
-					data_reg <= 32'd0;
-					last_reg <= 1'b0;
-					user_reg <= 1'b0;
-				
-				end
+		  if (state == IDLE && valid_in) begin
+			data_reg <= data_in;
+			last_reg <= last_in;
+			user_reg <= user_in;
+		  end else if (state == SEND && m_axis_tready) begin
+			if (valid_in) begin
+			  data_reg <= data_in;
+			  last_reg <= last_in;
+			  user_reg <= user_in;
+			end else begin
+			  data_reg <= 32'd0;
+			  last_reg <= 1'b0;
+			  user_reg <= 1'b0;
+			end
+		  end
 		end
-	end
+	  end
 
 endmodule
 
