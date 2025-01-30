@@ -69,9 +69,7 @@ module AXI_stream_master #(
 			m_axis_tuser = user_reg; // Pass user_reg value to m_axis_tuser
 
 			if (m_axis_tready) begin
-			  if (last_reg) begin
-				next_state = IDLE;  // Transition to IDLE if this is the last transfer
-			  end else if (!valid_in) begin
+			  if (!valid_in) begin
 				next_state = IDLE;  // Transition to IDLE if no more data is available
 			  end
 			end

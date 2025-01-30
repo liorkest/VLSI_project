@@ -13,12 +13,8 @@ module memory_reader_wiener #(
 ) (
 	input  logic                       clk,         // Clock signal
 	input  logic                       rst_n,       // Active-low reset signal
-	//input  logic [31:0]                pixels_per_frame, // max value allowed: 1280*720
 	input  logic [15:0]                frame_height, // max value allowed <= 720
 	input  logic [15:0]                frame_width, // max value allowed <= 1280
-	//input  logic [31:0]                blocks_per_frame,
-	//input  logic 					   frame_ready, // [LS 12.01.25] Now we have this signal from memory_reader_for_noise estimation as a pulse after estimated_noise_ready 
-													// Maybe use it instead of estimated_noise_ready - functions the same
 	input  logic 					   estimated_noise_ready,
 	input  logic                   	   rvalid, //from AXI memory slave
 	input  logic                       arready, //from AXI memory slave

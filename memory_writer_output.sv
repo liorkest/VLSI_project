@@ -187,8 +187,10 @@ always_comb begin
 		end
 			
 		WRITE_HANDSHAKE: begin
+			write_len = 0;
 			if (wvalid) begin
 				next_state = WRITE;
+				write_len = BLOCK_SIZE;
 			end
 		end
 		

@@ -100,11 +100,7 @@ always_ff @(posedge clk or negedge resetn) begin
 			end else begin
 				write_beat_count <= 8'd0;
 			end
-		end 
-		// [04.01.25 LS] was written twice
-		//else if (write_state == WRITE_IDLE) begin
-			//write_burst_addr <= write_addr;  // Initialize burst address
-		//end
+		end
 	end
 end
 

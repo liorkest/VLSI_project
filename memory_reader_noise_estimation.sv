@@ -13,10 +13,8 @@ module memory_reader_noise_estimation #(
 ) (
 	input  logic                       clk,         // Clock signal
 	input  logic                       rst_n,       // Active-low reset signal
-	//input  logic [31:0]                pixels_per_frame, // max value allowed: 1280*720
 	input  logic [15:0]                frame_height, // max value allowed <= 720
 	input  logic [15:0]                frame_width, // max value allowed <= 1280
-	//input  logic [31:0]                blocks_per_frame,
 	input  logic 					   frame_ready,
 	input  logic                   	   rvalid, //from AXI memory slave
 	input  logic                       arready, //from AXI memory slave

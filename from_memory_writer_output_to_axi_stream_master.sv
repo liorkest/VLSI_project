@@ -1,14 +1,14 @@
 /*------------------------------------------------------------------------------
- * File          : memory_writer_output_test_with_axi_mem_slave.sv
+ * File          : from_memory_writer_output_to_axi_stream_master.sv
  * Project       : RTL
  * Author        : eplkls
- * Creation date : Jan 19, 2025
+ * Creation date : Jan 26, 2025
  * Description   :
  *------------------------------------------------------------------------------*/
 
 
 
-module memory_writer_output_test_with_axi_mem_slave;
+module memory_writer_output_to_axi_stream_master_test;
 	// Parameters
 	parameter DATA_WIDTH = 32;
 	parameter ADDR_WIDTH = 32;
@@ -33,8 +33,9 @@ module memory_writer_output_test_with_axi_mem_slave;
 	logic [DATA_WIDTH/8-1:0]	write_strb;
 			
 	logic frame_ready;
-	logic [ADDR_WIDTH-1:0] base_addr_out;
+	logic [ADDR_WIDTH-1:0] base_addr;
 	
+	// AXI memory master signals
 	// Write Address Channel
 	logic [ID_WIDTH-1:0] awid;
 	logic [ADDR_WIDTH-1:0] awaddr;
@@ -57,7 +58,7 @@ module memory_writer_output_test_with_axi_mem_slave;
 	logic bvalid;
 	logic bready;
 	
-	/* [commented by LK 01.12.25]
+	
 	// Read Address Channel
 	logic [ID_WIDTH-1:0] arid;
 	logic [ADDR_WIDTH-1:0] araddr;
@@ -74,18 +75,33 @@ module memory_writer_output_test_with_axi_mem_slave;
 	logic rlast;
 	logic rvalid;
 	logic rready;
-	*/ 
-	
+	 
 	// Control signals
 	logic [ID_WIDTH-1:0] write_id=0;
-	/* [commented by LK 01.12.25]
 	logic start_read;
 	logic [ID_WIDTH-1:0] read_id;
 	logic [ADDR_WIDTH-1:0] read_addr;
 	logic [31:0] read_len;
 	logic [2:0] read_size;
 	logic [1:0] read_burst;
-	*/
+	
+	// Memory Reader AXI Stream Master Interface
+	logic [DATA_WIDTH-1:0] m_axis_tdata;
+	logic m_axis_tvalid;
+	logic m_axis_tready;
+	logic m_axis_tlast;
+	logic m_axis_tuser;
+	logic [DATA_WIDTH-1:0] reader_data_in;
+	logic valid_in;
+	logic last_in;
+	logic user_in;
+
+	// AXI Stream Slave Interface
+	logic [DATA_WIDTH-1:0] s_axis_tdata;
+	logic s_axis_tvalid;
+	logic s_axis_tready;
+	logic s_axis_tlast;
+	logic s_axis_tuser;
 
 	memory_writer_output #(
 		.DATA_WIDTH(DATA_WIDTH)
@@ -107,8 +123,71 @@ module memory_writer_output_test_with_axi_mem_slave;
 		.write_data(write_data),
 		.write_strb(write_strb),
 		.frame_ready(frame_ready),
-		.base_addr_out(base_addr_out)
+		.base_addr_out(base_addr)
 	);
+	
+	memory_reader_output #(
+		.DATA_WIDTH(DATA_WIDTH),
+		.ADDR_WIDTH(ADDR_WIDTH)
+	) memory_reader_output_uut (
+		.clk(clk),
+		.rst_n(rst_n),
+		.frame_height(frame_height),
+		.frame_width(frame_width),
+		.frame_ready(frame_ready),
+		.base_addr(base_addr),
+		.start_read(start_read),
+		.read_addr(read_addr),
+		.read_len(read_len),
+		.read_size(read_size),
+		.read_burst(read_burst),
+		.arready(arready),
+		.rdata(rdata),
+		.rvalid(rvalid),
+		.rlast(rlast),
+		.m_axis_tdata(reader_data_in),
+		.m_axis_tvalid(valid_in),
+		.m_axis_tready(m_axis_tready),
+		.m_axis_tlast(last_in),
+		.m_axis_tuser(user_in)
+	);
+
+	// AXI Stream Master
+	AXI_stream_master #(
+		.DATA_WIDTH(DATA_WIDTH)
+	) axi_stream_master (
+		.clk(clk),
+		.rst_n(rst_n),
+		.m_axis_tdata(m_axis_tdata),
+		.m_axis_tvalid(m_axis_tvalid),
+		.m_axis_tready(m_axis_tready),
+		.m_axis_tlast(m_axis_tlast),
+		.m_axis_tuser(m_axis_tuser),
+		.data_in(reader_data_in),
+		.valid_in(valid_in),
+		.last_in(last_in),
+		.user_in(user_in) 
+	);
+
+	// AXI Stream Slave - for simulation (outside of TOP)
+	AXI_stream_slave #(
+		.DATA_WIDTH(DATA_WIDTH)
+	) axi_stream_slave (
+		.clk(clk),
+		.rst_n(rst_n),
+		.s_axis_tdata(s_axis_tdata),
+		.s_axis_tvalid(s_axis_tvalid),
+		.s_axis_tready(s_axis_tready),
+		.s_axis_tlast(s_axis_tlast),
+		.s_axis_tuser(s_axis_tuser)
+	);
+
+	// Connect AXI Stream Master to AXI Stream Slave
+	assign s_axis_tdata = m_axis_tdata;
+	assign s_axis_tvalid = m_axis_tvalid;
+	assign m_axis_tready = s_axis_tready;
+	assign s_axis_tlast = m_axis_tlast;
+	assign s_axis_tuser = m_axis_tuser;
 	
 	AXI_memory_master_burst #(
 		.ADDR_WIDTH(ADDR_WIDTH),
@@ -140,7 +219,6 @@ module memory_writer_output_test_with_axi_mem_slave;
 		.bvalid(bvalid),
 		.bready(bready),
 		
-		/* [commented by LK 01.12.25]
 		// Read Address Channel
 		.arid(arid),
 		.araddr(araddr),
@@ -157,7 +235,6 @@ module memory_writer_output_test_with_axi_mem_slave;
 		.rlast(rlast),
 		.rvalid(rvalid),
 		.rready(rready),
-		*/
 		
 		// Control signals
 		.start_write(start_write),
@@ -168,14 +245,13 @@ module memory_writer_output_test_with_axi_mem_slave;
 		.write_burst(write_burst),
 		.write_data(write_data),
 		.write_strb(write_strb),
-		.start_read(start_read)
-		/* [commented by LK 01.12.25]
-		, .read_id(read_id),
+		.start_read(start_read),
+		.read_id(read_id),
 		.read_addr(read_addr),
 		.read_len(read_len),
 		.read_size(read_size),
 		.read_burst(read_burst)
-		*/
+		
 	);
 	
 	AXI_memory_slave #(
@@ -234,15 +310,6 @@ module memory_writer_output_test_with_axi_mem_slave;
 		rst_n = 1'b0;
 		data_in = 0;
 		
-		/* [commented by LK 01.12.25]
-		start_read = 0;
-		read_id = 0;
-		read_addr = 0;
-		read_len = 0;
-		read_size = 0;
-		read_burst = 0;
-		*/
-		
 		// Reset the system
 		#20;
 		rst_n = 1'b1;
@@ -267,7 +334,7 @@ module memory_writer_output_test_with_axi_mem_slave;
 			@(posedge clk);
 			data_in = 1'b0; 
 		end
-		#600;
+		#2700;
 		$finish;
 	end
 
