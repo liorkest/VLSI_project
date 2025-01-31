@@ -7,7 +7,7 @@
  ------------------------------------------------------------------------------*/
 
 
-module AXI_stream_master_tb;
+module AXI_stream_master_new_tb;
 
 	// Parameters
 	parameter DATA_WIDTH = 32;

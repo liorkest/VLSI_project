@@ -22,7 +22,7 @@ logic [DATA_WIDTH+1 : 0] b = 3;
 logic [DATA_WIDTH+1 : 0] quotient; 
 logic [DATA_WIDTH+1 : 0] remainder;
 logic divide_by_0;
-DW_div_10bit divider (.*);
+DW_div_10bit_inst divider (.*);
 
 
 assign sum = data_in[7:0] + data_in[15:8] + data_in[23:16];

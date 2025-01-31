@@ -36,7 +36,7 @@ logic [4*DATA_WIDTH-1 : 0] b;
 logic [4*DATA_WIDTH-1 : 0] quotient; // result of 16.0 / 16.0 fixed point division = 16.16 format
 logic [4*DATA_WIDTH-1 : 0] remainder;
 logic divide_by_0;
-DW_div divider (.*);
+DW_div_32bit_inst divider (.*);
 
 // divider inputs 
 assign a = (variance_of_block >= noise_variance) ? 32'(variance_of_block - noise_variance) << 2*DATA_WIDTH : 32'(noise_variance - variance_of_block) << 2*DATA_WIDTH; // adjust to fixed point
