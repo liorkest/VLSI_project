@@ -1,5 +1,5 @@
 /*------------------------------------------------------------------------------
- * File          : TOP_AXI_stream_memory_noise_estimation_wiener_tb.sv
+ * File          : TOP_AXI_stream_memory_noise_estimation_wiener_FULL_image_tb_version2.sv
  * Project       : RTL
  * Author        : eplkls
  * Creation date : Jan 20, 2025
@@ -8,11 +8,13 @@
 
 
 
-module TOP_AXI_stream_memory_noise_estimation_wiener_FULL_image_tb #(
+module TOP_FULL_image_filtering_tb #(
 // Parameters of TB
 parameter 		BYTE_DATA_WIDTH = 8,
 parameter 		BLOCK_SIZE = 8,
 parameter 		DATA_WIDTH = 32,
+parameter 		ID_WIDTH = 4,
+parameter 		ADDR_WIDTH = 32,
 parameter 		IN_IMG = "hex_data_in.hex",
 parameter 		WIDTH = 1280,
 parameter 		HEIGHT = 720,
@@ -51,26 +53,81 @@ logic wiener_calc_en;
 logic [31:0] data_count ; 
 logic [DATA_WIDTH-1:0] data_out_wiener;
 
-TOP_AXI_stream_memory_noise_estimation_wiener #(
+
+/***************************
+ *  AXI memory slave wires 
+ ***************************/
+// Read Address Channel 1
+logic [ADDR_WIDTH-1:0] araddr;
+logic [7:0] arlen;
+logic [2:0] arsize;
+logic [1:0] arburst;
+logic arvalid;
+
+// Read Data Channel 1
+logic [DATA_WIDTH-1:0] rdata;
+logic [1:0] rresp;
+logic rready;
+
+// Read Address Channel 2
+logic arready_2;
+logic rlast_2;
+logic [ADDR_WIDTH-1:0] araddr_2;
+logic [7:0] arlen_2;
+logic arvalid_2;
+
+// Read Data Channel 
+logic [DATA_WIDTH-1:0] rdata_2;
+logic rvalid_2;
+logic rready_2;
+
+// Write Address Channel
+logic [ID_WIDTH-1:0] awid;
+logic [ADDR_WIDTH-1:0] awaddr;
+logic [7:0] awlen;
+logic [2:0] awsize;
+logic [1:0] awburst;
+logic awvalid;
+logic awready;
+
+// Write Data Channel
+logic [DATA_WIDTH-1:0] wdata;
+logic [DATA_WIDTH/8-1:0] wstrb;
+logic wlast;
+logic wvalid;
+logic wready;
+
+// Write Response Channel
+logic [ID_WIDTH-1:0] bid;
+logic [1:0] bresp;
+logic bvalid;
+logic bready;
+
+/***************************
+ *       TOP module
+ ***************************/
+TOP_AXI_stream_memory_noise_estimation_wiener_NO_AXI_mem_slave #(
 	.BYTE_DATA_WIDTH(BYTE_DATA_WIDTH),
 	.BLOCK_SIZE(BLOCK_SIZE),
 	.DATA_WIDTH(DATA_WIDTH),
 	.MEM_SIZE(TOTAL_SAMPLES),
 	.TOTAL_SAMPLES(TOTAL_SAMPLES),
 	.SAMPLES_PER_BLOCK(SAMPLES_PER_BLOCK)
-) TOP_AXI_stream_memory_noise_estimation_wiener_inst (
+) TOP_AXI_stream_memory_noise_estimation_wiener_NO_AXI_mem_slave_inst (
 	.clk(clk),                                    // Clock signal
 	.rst_n(rst_n),                                // Active-low reset
+	// general parameters
 	.frame_height(frame_height),                  // Frame height
 	.frame_width(frame_width),                    // Frame width
 	.blocks_per_frame(blocks_per_frame),          // Number of blocks per frame
 	.pixels_per_frame(pixels_per_frame),          // Number of pixels per frame
+	// AXI stream in
 	.s_axis_tdata(s_axis_tdata),                  // Input data stream
 	.s_axis_tvalid(s_axis_tvalid),                // Valid signal for input stream
 	.s_axis_tlast(s_axis_tlast),                  // Last signal for input stream
 	.s_axis_tready(s_axis_tready),                // Ready signal for input stream
 	.s_axis_tuser(s_axis_tuser),                  // User signal for input stream
-	.rlast(rlast),                                // Last signal for result stream
+	// control signals
 	.noise_estimation_en(noise_estimation_en),    // Enable signal for noise estimation
 	.start_data_noise_est(start_data_noise_est),  // Start signal for data noise estimation
 	.start_of_frame_noise_estimation(start_of_frame_noise_estimation), // Start of frame signal
@@ -81,9 +138,91 @@ TOP_AXI_stream_memory_noise_estimation_wiener #(
 	.start_data_wiener(start_data_wiener),        // Start signal for Wiener filter data
 	.wiener_block_stats_en(wiener_block_stats_en), // Enable signal for Wiener block stats
 	.wiener_calc_en(wiener_calc_en),               // Enable signal for Wiener calculation
+	// output from wiener
 	.data_count(data_count),                       // Data count
-	.data_out_wiener(data_out_wiener)              // Output data after Wiener filter
+	.data_out_wiener(data_out_wiener) ,             // Output data after Wiener filter
+	// wires from YOP to AXI memory slave
+	//.awid(awid),
+	.awaddr(awaddr),
+	.awlen(awlen),
+	//.awsize(awsize),
+	//.awburst(awburst),
+	.awvalid(awvalid),
+	.awready(awready),
+	.wdata(wdata),
+	//.wstrb(wstrb),
+	.wlast(wlast),
+	.wvalid(wvalid),
+	.wready(wready),
+	//.bid(bid),
+	//.bresp(bresp),
+	.bvalid(bvalid),
+	.bready(bready),
+	//.arid(arid),
+	.araddr(araddr),
+	.arlen(arlen),
+	//.arsize(arsize),
+	//.arburst(arburst),
+	.arvalid(arvalid),
+	.arready(arready),
+	//.rid(rid),
+	.rdata(rdata),
+	//.rresp(rresp),
+	.rlast(rlast),
+	.rvalid(rvalid),
+	.rready(rready),
+	.araddr_2(araddr_2),
+	.arlen_2(arlen_2),
+	.arvalid_2(arvalid_2),
+	.arready_2(arready_2),
+	.rdata_2(rdata_2),
+	.rvalid_2(rvalid_2),
+	.rready_2(rready_2),
+	.rlast_2(rlast_2)
 );
+
+
+/****************************************
+ *  AXI memory slave (Non synthesizable)
+ ***************************************/ 
+AXI_memory_slave_3channels #(
+	.ADDR_WIDTH(ADDR_WIDTH),
+	.DATA_WIDTH(DATA_WIDTH),
+	.ID_WIDTH(ID_WIDTH),
+	.MEM_SIZE(TOTAL_SAMPLES),
+	.INIT_OPTION(0)
+  ) AXI_memory_slave_uut (
+	.clk(clk),
+	.rst_n(rst_n),
+	.awaddr(awaddr),
+	//.awlen(awlen),
+	.awvalid(awvalid),
+	.awready(awready),
+	.wdata(wdata),
+	.wlast(wlast),
+	.wvalid(wvalid),
+	.wready(wready),
+	.bresp(bresp),
+	.bvalid(bvalid),
+	.bready(bready),
+	.araddr(araddr),
+	.arlen(arlen),
+	.arvalid(arvalid),
+	.arready(arready),
+	.rdata(rdata),
+	.rlast(rlast),
+	.rvalid(rvalid),
+	.rready(rready),
+	
+	.araddr_2(araddr_2),
+	.arlen_2(arlen_2),
+	.arvalid_2(arvalid_2),
+	.arready_2(arready_2),
+	.rdata_2(rdata_2),
+	.rlast_2(rlast_2),
+	.rvalid_2(rvalid_2),
+	.rready_2(rready_2)
+  );
 
 
 	// Clock generation
