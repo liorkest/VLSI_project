@@ -21,7 +21,7 @@ module wiener_calc #(
 	input logic [2*DATA_WIDTH-1:0] variance_of_block,
 	input logic [2*DATA_WIDTH-1:0] noise_variance,
 	input logic [DATA_WIDTH-1:0]  data_in,	      // the current pixel channel value 0-255
-	input logic [31:0]            blocks_per_frame,
+	//input logic [31:0]            blocks_per_frame, // [LS 31.01.25] removing - not used
 	// outputs
 	output logic  [DATA_WIDTH-1:0] data_out,
 	output logic [31:0]            data_count_out // starting from 1 to TOTAL_SAMPLES

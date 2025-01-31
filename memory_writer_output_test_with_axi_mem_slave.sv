@@ -135,8 +135,8 @@ module memory_writer_output_test_with_axi_mem_slave;
 		.wready(wready),
 		
 		// Write Response Channel
-		.bid(bid),
-		.bresp(bresp),
+		//.bid(bid),
+		//.bresp(bresp),
 		.bvalid(bvalid),
 		.bready(bready),
 		

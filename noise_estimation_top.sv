@@ -13,7 +13,7 @@ module noise_estimation #(
 	input  logic                   clk,
 	input  logic                   rst_n,
 	// controller
-	input  logic                   start_of_frame, end_of_frame, 
+	input  logic                   start_of_frame, // end_of_frame, //[LS 31.01.25] removing - not used
 	input  logic [DATA_WIDTH-1:0]  data_in,   // 8-bit input data
 	input  logic                   start_data,
 	input  logic [31:0]            blocks_per_frame,
@@ -49,7 +49,7 @@ noise_estimation_FSM #(.DATA_WIDTH(DATA_WIDTH),
 	.clk(clk),
 	.rst_n(rst_n),
 	.start_of_frame(start_of_frame),
-	.end_of_frame(end_of_frame),
+	//.end_of_frame(end_of_frame),
 	.mean_ready(mean_ready),
 	.variance_ready(variance_ready),
 	.blocks_per_frame(blocks_per_frame),

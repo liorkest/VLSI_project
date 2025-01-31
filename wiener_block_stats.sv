@@ -59,7 +59,7 @@ wiener_block_stats_FSM #(
 	.clk(clk),
 	.rst_n(rst_n),
 	.start_of_frame(start_of_frame),
-	.end_of_frame(end_of_frame),
+	//.end_of_frame(end_of_frame),
 	.mean_ready(mean_ready),
 	.variance_ready(variance_ready),
 	.blocks_per_frame(blocks_per_frame),

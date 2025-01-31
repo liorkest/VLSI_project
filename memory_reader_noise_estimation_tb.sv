@@ -62,7 +62,7 @@ module memory_reader_noise_estimation_tb;
 		.frame_width(frame_width),
 		.frame_ready(frame_ready),
 		.rvalid(rvalid),
-		.arready(arready),
+		//.arready(arready),
 		.rlast(rlast),
 		.start_read(start_read),
 		.read_addr(read_addr),
@@ -101,8 +101,8 @@ module memory_reader_noise_estimation_tb;
 		*/
 		
 		// Write Response Channel
-		.bid(bid),
-		.bresp(bresp),
+		//.bid(bid),
+		//.bresp(bresp),
 		.bvalid(bvalid),
 		.bready(bready),
 		
@@ -116,9 +116,9 @@ module memory_reader_noise_estimation_tb;
 		.arready(arready),
 		
 		// Read Data Channel
-		.rid(rid),
-		.rdata(rdata),
-		.rresp(rresp),
+		//.rid(rid),
+		//.rdata(rdata),
+		//.rresp(rresp),
 		.rlast(rlast),
 		.rvalid(rvalid),
 		.rready(rready),

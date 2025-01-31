@@ -75,7 +75,7 @@ memory_reader_wiener #(
 	.frame_height(frame_height),
 	.frame_width(frame_width),
 	.rvalid(rvalid),
-	.arready(arready),
+	//.arready(arready),
 	.rlast(rlast),
 	.base_addr_in(base_addr_in),
 	.wiener_calc_data_count(data_count),
@@ -110,8 +110,8 @@ AXI_memory_master_burst #(
 	
 	// Read Data Channel
 	//.rid(rid),
-	.rdata(rdata),
-	.rresp(rresp),
+	//.rdata(rdata),
+	//.rresp(rresp),
 	.rlast(rlast),
 	.rvalid(rvalid),
 	.rready(rready),

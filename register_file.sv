@@ -14,8 +14,8 @@ module register_file (
 	
 	// Read wires for all modules
 	output logic [31:0] res_x,
-	output logic [31:0] res_y,
-	output logic [31:0] fps
+	output logic [31:0] res_y
+	// output logic [31:0] fps // [ls 31.01.25] removing - not used
 );
 
 	// Register array: 16 registers of 32 bits
@@ -37,7 +37,7 @@ module register_file (
 	// Read operation for all blocks
 	assign res_x = reg_file[0];
 	assign res_y = reg_file[1];
-	assign fps = reg_file[2];
+	// assign fps = reg_file[2];
 	
 	// Read operation for AXI Lite slave
 	assign read_data = reg_file[read_addr];

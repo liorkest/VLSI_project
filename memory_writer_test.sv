@@ -47,7 +47,7 @@ module memory_writer_tb;
 		.s_axis_tuser(s_axis_tuser),
 		.pixels_per_frame(pixels_per_frame),
 		.frame_height(frame_height),
-		.frame_width(frame_width),
+		//.frame_width(frame_width),
 		.start_write(start_write),
 		.write_addr(write_addr),
 		.write_len(write_len),

@@ -100,8 +100,8 @@ AXI_memory_master_burst #(
 	.wready(wready),
 	
 	// Write Response Channel
-	.bid(bid),
-	.bresp(bresp),
+	//.bid(bid),
+	//.bresp(bresp),
 	.bvalid(bvalid),
 	.bready(bready),
 	
@@ -115,9 +115,9 @@ AXI_memory_master_burst #(
 	.arready(arready),
 	
 	// Read Data Channel
-	.rid(rid),
-	.rdata(rdata),
-	.rresp(rresp),
+	//.rid(rid),
+	//.rdata(rdata),
+	//.rresp(rresp),
 	.rlast(rlast),
 	.rvalid(rvalid),
 	.rready(rready),

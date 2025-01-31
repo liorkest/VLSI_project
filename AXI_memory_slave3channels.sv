@@ -19,7 +19,7 @@ module AXI_memory_slave_3channels #(
 
 	// Write address channel
 	input  [ADDR_WIDTH-1:0]     awaddr,
-	input  [7:0]                awlen,
+	//input  [7:0]                awlen, [LS 31.01.25] not used
 	input                       awvalid,
 	output logic                  awready,
 

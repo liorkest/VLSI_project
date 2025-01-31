@@ -61,9 +61,9 @@ module AXI_stream_master_new_tb;
 		.rst_n(rst_n),
 		.s_axis_tdata(s_axis_tdata),
 		.s_axis_tvalid(s_axis_tvalid),
-		.s_axis_tready(s_axis_tready),
-		.s_axis_tlast(s_axis_tlast),
-		.s_axis_tuser(s_axis_tuser)
+		.s_axis_tready(s_axis_tready)
+		//.s_axis_tlast(s_axis_tlast),
+		//.s_axis_tuser(s_axis_tuser)
 	);
 
 	// Connect master and slave

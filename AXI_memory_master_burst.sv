@@ -33,8 +33,8 @@ module AXI_memory_master_burst #
 	input  logic                    wready,
 
 	// Write Response Channel
-	input  logic [ID_WIDTH-1:0]     bid,
-	input  logic [1:0]              bresp,
+	//input  logic [ID_WIDTH-1:0]     bid,
+	//input  logic [1:0]              bresp,
 	input  logic                    bvalid,
 	output logic                    bready,
 
@@ -48,9 +48,9 @@ module AXI_memory_master_burst #
 	input  logic                    arready,
 
 	// Read Data Channel
-	input  logic [ID_WIDTH-1:0]     rid,
-	input  logic [DATA_WIDTH-1:0]   rdata,
-	input  logic [1:0]              rresp,
+	//input  logic [ID_WIDTH-1:0]     rid,  // [LS 31.01.25] not used
+	//input  logic [DATA_WIDTH-1:0]   rdata,  // [LS 31.01.25] not used
+	//input  logic [1:0]              rresp,  // [LS 31.01.25] not used
 	input  logic                    rlast,
 	input  logic                    rvalid,
 	output logic                    rready,

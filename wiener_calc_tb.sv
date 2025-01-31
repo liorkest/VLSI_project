@@ -36,7 +36,7 @@ module wiener_calc_tb;
 	.variance_of_block(variance_of_block), 
 	.noise_variance(noise_variance), 
 	.data_in(data_in), 
-	.blocks_per_frame(blocks_per_frame), 
+	//.blocks_per_frame(blocks_per_frame), 
 	.data_out(data_out), 
 	.data_count_out(data_count) 
   ); 

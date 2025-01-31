@@ -123,7 +123,7 @@ logic start_of_frame_noise_estimation;
 		.s_axis_tuser(s_axis_tuser),
 		.pixels_per_frame(pixels_per_frame),
 		.frame_height(frame_height),
-		.frame_width(frame_width),
+		//.frame_width(frame_width),
 		.start_write(start_write),
 		.write_addr(write_addr),
 		.write_len(write_len),
@@ -160,8 +160,8 @@ logic start_of_frame_noise_estimation;
 		.wready(wready),
 		
 		// Write Response Channel
-		.bid(bid),
-		.bresp(bresp),
+		//.bid(bid),
+		//.bresp(bresp),
 		.bvalid(bvalid),
 		.bready(bready),
 		
@@ -255,7 +255,7 @@ logic start_of_frame_noise_estimation;
 		.frame_width(frame_width),
 		.frame_ready(frame_ready_for_noise_est),
 		.rvalid(rvalid),
-		.arready(arready),
+		//.arready(arready),
 		.rlast(rlast),
 		.estimated_noise_ready(estimated_noise_ready),
 		.start_read(start_read),
@@ -286,9 +286,9 @@ logic start_of_frame_noise_estimation;
 		.arready(arready),
 		
 		// Read Data Channel
-		.rid(rid),
-		.rdata(rdata),
-		.rresp(rresp),
+		//.rid(rid),
+		//.rdata(rdata),
+		//.rresp(rresp),
 		.rlast(rlast),
 		.rvalid(rvalid),
 		.rready(rready),

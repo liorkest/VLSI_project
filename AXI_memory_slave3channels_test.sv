@@ -81,7 +81,7 @@ AXI_memory_slave_3channels #(
   .rst_n(rst_n),
   //.awid(awid),
   .awaddr(awaddr),
-  .awlen(awlen),
+  //.awlen(awlen),
   //.awsize(awsize),
   //.awburst(awburst),
   .awvalid(awvalid),

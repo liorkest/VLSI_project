@@ -11,6 +11,7 @@
 module TOP_AXI_stream_memory_noise_estimation_wiener_NO_AXI_mem_slave #(
 // Parameters
 
+
 parameter 		BYTE_DATA_WIDTH = 8,
 parameter 		BLOCK_SIZE = 8,
 parameter 		DATA_WIDTH = 32,
@@ -58,7 +59,7 @@ parameter 		SAMPLES_PER_BLOCK = 64// total number of pixels in frame
 	output logic                     wlast,
 
 	// Write response channel
-	input  [1:0]                     bresp,
+	//input  [1:0]                     bresp, // [LS 31.01.25] removing - not used
 	input                             bvalid,
 	output logic                     bready,
 
@@ -96,7 +97,7 @@ parameter 		SAMPLES_PER_BLOCK = 64// total number of pixels in frame
 logic rvalid;
 logic arready;
 */
-logic [31:0] len;
+// logic [31:0] len; // [LS 31.01.25] removing - not used 
 logic start_read;
 logic [ADDR_WIDTH-1:0] read_addr;
 logic [31:0] read_len;
@@ -198,7 +199,7 @@ logic [7:0] rgb_mean_out;
 		.s_axis_tuser(s_axis_tuser),
 		.pixels_per_frame(pixels_per_frame),
 		.frame_height(frame_height),
-		.frame_width(frame_width),
+		//.frame_width(frame_width),
 		.start_write(start_write),
 		.write_addr(write_addr),
 		.write_len(write_len),
@@ -235,8 +236,8 @@ logic [7:0] rgb_mean_out;
 		.wready(wready),
 		
 		// Write Response Channel
-		.bid(bid),
-		.bresp(bresp),
+		//.bid(bid),
+		//.bresp(bresp),
 		.bvalid(bvalid),
 		.bready(bready),
 		
@@ -306,7 +307,7 @@ logic [7:0] rgb_mean_out;
 		.frame_width(frame_width),
 		.frame_ready(frame_ready_for_noise_est),
 		.rvalid(rvalid),
-		.arready(arready),
+		//.arready(arready),
 		.rlast(rlast),
 		.base_addr_in(base_addr_out_memory_writer),
 		.estimated_noise_ready(estimated_noise_ready),
@@ -338,9 +339,9 @@ logic [7:0] rgb_mean_out;
 		.arready(arready),
 		
 		// Read Data Channel
-		.rid(rid),
-		.rdata(rdata),
-		.rresp(rresp),
+		//.rid(rid),
+		//.rdata(rdata),
+		//.rresp(rresp),
 		.rlast(rlast),
 		.rvalid(rvalid),
 		.rready(rready),
@@ -391,7 +392,7 @@ logic [7:0] rgb_mean_out;
 		.frame_height(frame_height),
 		.frame_width(frame_width),
 		.rvalid(rvalid_2),
-		.arready(arready_2),
+		//.arready(arready_2),
 		.rlast(rlast_2),
 		.base_addr_in(base_addr_out_noise_est),
 		.wiener_calc_data_count(data_count),
@@ -426,8 +427,8 @@ logic [7:0] rgb_mean_out;
 		
 		// Read Data Channel
 		//.rid(rid),
-		.rdata(rdata_2),
-		.rresp(rresp_2),
+		//.rdata(rdata_2),
+		//.rresp(rresp_2),
 		.rlast(rlast_2),
 		.rvalid(rvalid_2),
 		.rready(rready_2),

@@ -88,8 +88,8 @@ register_file reg_file (
   .read_addr(read_addr),
   .read_data(read_data),
   .res_x(),
-  .res_y(),
-  .fps()
+  .res_y()
+  //.fps()
 );
 
 // Clock generation

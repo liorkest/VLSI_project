@@ -14,7 +14,7 @@ module noise_estimation_FSM #(
 	input logic                   clk,
 	input logic                   rst_n,
 	input logic                   start_of_frame, 
-	input logic                   end_of_frame, 
+	//input logic                   end_of_frame, // [LS 31.01.25] removing - not used
 	input logic                   mean_ready, 
 	input logic                   variance_ready,
 	input logic [31:0]            blocks_per_frame,

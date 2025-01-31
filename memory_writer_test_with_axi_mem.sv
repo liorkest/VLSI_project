@@ -101,7 +101,7 @@ module memory_writer_with_axi_mem_tb;
 		.s_axis_tuser(s_axis_tuser),
 		.pixels_per_frame(pixels_per_frame),
 		.frame_height(frame_height),
-		.frame_width(frame_width),
+		//.frame_width(frame_width),
 		.start_write(start_write),
 		.write_addr(write_addr),
 		.write_len(write_len),
@@ -138,8 +138,8 @@ module memory_writer_with_axi_mem_tb;
 		.wready(wready),
 		
 		// Write Response Channel
-		.bid(bid),
-		.bresp(bresp),
+		//.bid(bid),
+		//.bresp(bresp),
 		.bvalid(bvalid),
 		.bready(bready),
 		

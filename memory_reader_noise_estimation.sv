@@ -17,7 +17,7 @@ module memory_reader_noise_estimation #(
 	input  logic [15:0]                frame_width, // max value allowed <= 1280
 	input  logic 					   frame_ready,
 	input  logic                   	   rvalid, //from AXI memory slave
-	input  logic                       arready, //from AXI memory slave
+	//input  logic                       arready, //from AXI memory slave // [LS 31.01.25] not used
 	input  logic                       rlast, //from AXI memory slave
 	input  logic [ADDR_WIDTH-1:0] 	   base_addr_in = 0, 
 	input  logic 					   estimated_noise_ready,

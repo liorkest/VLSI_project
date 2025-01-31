@@ -40,7 +40,7 @@ module noise_estimation_tb;
         .clk(clk),
         .rst_n(rst_n),
         .start_of_frame(start_of_frame),
-        .end_of_frame(end_of_frame),
+        //.end_of_frame(end_of_frame),
         .data_in(data_in),
         .start_data(start_data),
 		.blocks_per_frame(blocks_per_frame),

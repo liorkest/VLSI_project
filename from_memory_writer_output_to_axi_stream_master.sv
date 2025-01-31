@@ -177,9 +177,9 @@ module memory_writer_output_to_axi_stream_master_test;
 		.rst_n(rst_n),
 		.s_axis_tdata(s_axis_tdata),
 		.s_axis_tvalid(s_axis_tvalid),
-		.s_axis_tready(s_axis_tready),
-		.s_axis_tlast(s_axis_tlast),
-		.s_axis_tuser(s_axis_tuser)
+		.s_axis_tready(s_axis_tready)
+		//.s_axis_tlast(s_axis_tlast),
+		//.s_axis_tuser(s_axis_tuser)
 	);
 
 	// Connect AXI Stream Master to AXI Stream Slave
@@ -214,8 +214,8 @@ module memory_writer_output_to_axi_stream_master_test;
 		.wready(wready),
 		
 		// Write Response Channel
-		.bid(bid),
-		.bresp(bresp),
+		//.bid(bid),
+		//.bresp(bresp),
 		.bvalid(bvalid),
 		.bready(bready),
 		
@@ -229,9 +229,9 @@ module memory_writer_output_to_axi_stream_master_test;
 		.arready(arready),
 		
 		// Read Data Channel
-		.rid(rid),
-		.rdata(rdata),
-		.rresp(rresp),
+		//.rid(rid),
+		//.rdata(rdata),
+		//.rresp(rresp),
 		.rlast(rlast),
 		.rvalid(rvalid),
 		.rready(rready),

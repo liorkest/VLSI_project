@@ -74,7 +74,7 @@ module from_memory_slave_to_noise_estimation_tb;
 		.frame_width(frame_width),
 		.frame_ready(frame_ready),
 		.rvalid(rvalid),
-		.arready(arready),
+		//.arready(arready),
 		.rlast(rlast),
 		.estimated_noise_ready(estimated_noise_ready),
 		.start_read(start_read),
@@ -105,9 +105,9 @@ module from_memory_slave_to_noise_estimation_tb;
 		.arready(arready),
 		
 		// Read Data Channel
-		.rid(rid),
-		.rdata(rdata),
-		.rresp(rresp),
+		//.rid(rid),
+		//.rdata(rdata),
+		//.rresp(rresp),
 		.rlast(rlast),
 		.rvalid(rvalid),
 		.rready(rready),
