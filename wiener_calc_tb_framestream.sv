@@ -38,7 +38,7 @@ module wiener_calc_tb_framestream;
 	.data_in(data_in), 
 	.blocks_per_frame(blocks_per_frame), 
 	.data_out(data_out), 
-	.data_count(data_count) 
+	.data_count_out(data_count) 
   ); 
  
   // Clock generation 

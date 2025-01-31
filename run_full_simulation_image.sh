@@ -27,7 +27,8 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 # compile & run verilog
-vcs -kdb -sverilog -debug_access+all -full64 memory_writer.sv AXI_stream_slave.sv AXI_memory_slave3channels.sv memory_reader_noise_estimation.sv AXI_memory_master_burst.sv RGB_mean.sv DW_div_10bit.v shift_register.sv mean_unit.sv variance_unit.sv noise_estimation_FSM.sv noise_estimation_top.sv wiener_block_stats.sv wiener_calc.sv wiener_block_stats_FSM.sv wiener_1_channel.sv wiener_3_channels.sv DW_div.v memory_reader_wiener.sv TOP_AXI_stream_memory_noise_estimation_wiener.sv TOP_AXI_stream_memory_noise_estimation_wiener_FULL_image_tb.sv -pvalue+TOP_AXI_stream_memory_noise_estimation_wiener_FULL_image_tb.WIDTH=$WIDTH -pvalue+TOP_AXI_stream_memory_noise_estimation_wiener_FULL_image_tb.HEIGHT=$HEIGHT 
+vcs -kdb -sverilog -debug_access+all -full64 memory_writer.sv AXI_stream_slave.sv AXI_memory_slave3channels.sv memory_reader_noise_estimation.sv AXI_memory_master_burst.sv RGB_mean.sv DW_div.v DW_div_10bit_inst.sv shift_register.sv mean_unit.sv variance_unit.sv noise_estimation_FSM.sv noise_estimation_top.sv wiener_block_stats.sv wiener_calc.sv wiener_block_stats_FSM.sv wiener_1_channel.sv wiener_3_channels.sv DW_div_32bit_inst.sv memory_reader_wiener.sv TOP_AXI_stream_memory_noise_estimation_wiener_NO_AXI_mem_slave.sv TOP_AXI_stream_memory_noise_estimation_wiener_FULL_image_tb_version2.sv -pvalue+TOP_AXI_stream_memory_noise_estimation_wiener_FULL_image_tb_version2.WIDTH=$WIDTH -pvalue+TOP_AXI_stream_memory_noise_estimation_wiener_FULL_image_tb_version2.HEIGHT=$HEIGHT 
+
 simv     # simulation
 # reorder HEX
 python reorder_hex_data.py $OUTPUT_HEX $OUTPUT_REORDER_HEX $WIDTH
