@@ -291,7 +291,7 @@ logic [7:0] rgb_mean_out;
 	// DUT instantiation
 	noise_estimation #(
 		.DATA_WIDTH(BYTE_DATA_WIDTH),
-		.TOTAL_SAMPLES(BLOCK_SIZE*BLOCK_SIZE) // Total number of pixels per frame (MUST be power of 2)
+		.TOTAL_SAMPLES(SAMPLES_PER_BLOCK) // Total number of pixels per frame (MUST be power of 2)
 	) noise_estimation_dut (
 		.clk(clk & noise_estimation_en), 
 		.rst_n(rst_n),

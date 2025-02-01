@@ -1,5 +1,5 @@
 /*------------------------------------------------------------------------------
- * File          : noise_estimation.sv
+ * File          : noise_estimation_top.sv
  * Project       : RTL
  * Author        : eplkls
  * Creation date : Nov 29, 2024
@@ -76,7 +76,7 @@ mean_unit #(
 
 
 shift_register#(
-	.BYTE_WIDTH(DATA_WIDTH),
+	.DATA_WIDTH(DATA_WIDTH),
 	.DEPTH(TOTAL_SAMPLES)
 ) shift_register_inst (
 	.clk(clk),

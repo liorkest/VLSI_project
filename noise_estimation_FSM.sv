@@ -1,5 +1,5 @@
 /*------------------------------------------------------------------------------
- * File          : noise_estimation.sv
+ * File          : noise_estimation_FSM.sv
  * Project       : RTL
  * Author        : eplkls
  * Creation date : Nov 24, 2024

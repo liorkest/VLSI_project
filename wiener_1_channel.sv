@@ -1,5 +1,5 @@
 /*------------------------------------------------------------------------------
- * File          : noise_estimation.sv
+ * File          : wiener_1_channel.sv
  * Project       : RTL
  * Author        : eplkls
  * Creation date : Nov 29, 2024

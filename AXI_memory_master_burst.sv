@@ -1,5 +1,5 @@
 /*------------------------------------------------------------------------------
- * File          : AXI_memory_master.sv
+ * File          : AXI_memory_master_burst.sv
  * Project       : RTL
  * Author        : eplkls
  * Creation date : Dec 22, 2024

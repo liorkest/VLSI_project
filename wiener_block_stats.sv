@@ -1,5 +1,5 @@
 /*------------------------------------------------------------------------------
- * File          : noise_estimation.sv
+ * File          : wiener_block_stats.sv
  * Project       : RTL
  * Author        : eplkls
  * Creation date : Nov 29, 2024
@@ -86,7 +86,7 @@ mean_unit #(
 
 
 shift_register#(
-	.BYTE_WIDTH(DATA_WIDTH),
+	.DATA_WIDTH(DATA_WIDTH),
 	.DEPTH(TOTAL_SAMPLES)
 ) shift_register_data_in_1 ( // renamed 12.12.24 LK
 	.clk(clk),
@@ -99,7 +99,7 @@ shift_register#(
 
 // added new module 12.12.24 LK
 shift_register#(
-	.BYTE_WIDTH(DATA_WIDTH),
+	.DATA_WIDTH(DATA_WIDTH),
 	.DEPTH(TOTAL_SAMPLES)
 ) shift_register_data_in_2 (
 	.clk(clk),
@@ -112,7 +112,7 @@ shift_register#(
 
 // NEW module LK [12.12.24]
 shift_register#(
-	.BYTE_WIDTH(DATA_WIDTH*2),
+	.DATA_WIDTH(DATA_WIDTH*2),
 	.DEPTH(2)
 ) shift_register_mean (
 	.clk(clk),

@@ -7,18 +7,18 @@
  *------------------------------------------------------------------------------*/
 
 module shift_register #(
-	parameter BYTE_WIDTH = 8,        // Width of a byte
+	parameter DATA_WIDTH = 8,        // Width of a byte
 	parameter DEPTH = 64            // Number of bytes in the shift register
 )(
 	input  logic                   clk,      // Clock signal
 	input  logic                   rst_n,    // Asynchronous reset
-	input  logic [BYTE_WIDTH-1:0]  serial_in, // Serial input (1 byte at a time)
+	input  logic [DATA_WIDTH-1:0]  serial_in, // Serial input (1 byte at a time)
 	input  logic                   shift_en,  // Enable signal for shifting
-	output logic [BYTE_WIDTH-1:0]  serial_out // Serial output (1 byte)
+	output logic [DATA_WIDTH-1:0]  serial_out // Serial output (1 byte)
 );
 
 	// Register array to hold the bytes
-	logic [BYTE_WIDTH-1:0] shift_reg [0:DEPTH-1];
+	logic [DATA_WIDTH-1:0] shift_reg [0:DEPTH-1];
 	int i;
 	
 	// Shift operation

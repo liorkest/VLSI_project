@@ -60,7 +60,7 @@ AXI_stream_slave #(
 
 // Instantiate the shift register [LK 01.01.25]
 shift_register#(
-	.BYTE_WIDTH(32),
+	.DATA_WIDTH(32),
 	.DEPTH(3)
 ) tdata_shift_reg (
 	.clk(clk),

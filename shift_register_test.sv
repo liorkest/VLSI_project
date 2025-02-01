@@ -8,19 +8,19 @@
 
 module shift_register_tb;
 // Parameters
-parameter BYTE_WIDTH = 8;
+parameter DATA_WIDTH = 8;
 parameter DEPTH = 10;
 
 // Signals
 logic                   clk;
 logic                   rst_n;
-logic [BYTE_WIDTH-1:0]  serial_in;
+logic [DATA_WIDTH-1:0]  serial_in;
 logic                   shift_en;
-logic [BYTE_WIDTH-1:0]  serial_out;
+logic [DATA_WIDTH-1:0]  serial_out;
 
 // Instantiate the shift register
 shift_register#(
-	.BYTE_WIDTH(BYTE_WIDTH),
+	.DATA_WIDTH(DATA_WIDTH),
 	.DEPTH(DEPTH)
 ) uut (
 	.clk(clk),

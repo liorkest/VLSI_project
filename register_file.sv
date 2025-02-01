@@ -15,7 +15,7 @@ module register_file (
 	// Read wires for all modules
 	output logic [31:0] res_x,
 	output logic [31:0] res_y
-	// output logic [31:0] fps // [ls 31.01.25] removing - not used
+	// output logic [31:0] fps // [LS 31.01.25] removing - not used
 );
 
 	// Register array: 16 registers of 32 bits
