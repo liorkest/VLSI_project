@@ -107,7 +107,6 @@ module memory_reader_noise_estimation_tb;
 		.bready(bready),
 		
 		// Read Address Channel
-		.arid(arid),
 		.araddr(araddr),
 		.arlen(arlen),
 		.arsize(arsize),
@@ -135,7 +134,6 @@ module memory_reader_noise_estimation_tb;
 		.write_strb(write_strb),
 		*/
 		.start_read(start_read),
-		.read_id(read_id),
 		.read_addr(read_addr),
 		.read_len(read_len),
 		.read_size(read_size),

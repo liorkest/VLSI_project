@@ -197,7 +197,6 @@ logic [7:0] rgb_mean_out;
 		
 		// Control signals
 		.start_write(start_write),
-		.write_id(write_id),
 		.write_addr(write_addr),
 		.write_len(write_len),
 		.write_size(write_size),
@@ -281,7 +280,6 @@ logic [7:0] rgb_mean_out;
 		.resetn(rst_n),
 		
 		// Read Address Channel
-		.arid(arid),
 		.araddr(araddr),
 		.arlen(arlen),
 		.arsize(arsize),

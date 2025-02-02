@@ -29,15 +29,9 @@ parameter 		SAMPLES_PER_BLOCK = BLOCK_SIZE*BLOCK_SIZE
 	input logic s_axis_tlast,                 // Last signal for input stream
 	output logic s_axis_tready,                // Ready signal for input stream
 	input logic s_axis_tuser,                 // User signal for input stream
-	input logic noise_estimation_en,          // Enable signal for noise estimation
-	input logic start_data_noise_est,         // Start signal for data noise estimation
+	output noise_estimation_mean_ready,
 	output logic [2*BYTE_DATA_WIDTH-1:0] estimated_noise, // Estimated noise data
 	output logic estimated_noise_ready,        // Signal indicating noise estimation is ready
-	input logic start_of_frame_wiener,        // Start of frame signal for Wiener filter
-	output logic frame_ready_for_noise_est,    // Frame ready signal for noise estimation
-	input logic start_data_wiener,            // Start signal for Wiener filter data
-	input logic wiener_block_stats_en,        // Enable signal for Wiener block stats
-	input logic wiener_calc_en,               // Enable signal for Wiener calculation
 	output logic [31:0] data_count,            // Data count
 	output logic [DATA_WIDTH-1:0] data_out_wiener, // Output data after Wiener filter
 	
@@ -46,7 +40,9 @@ parameter 		SAMPLES_PER_BLOCK = BLOCK_SIZE*BLOCK_SIZE
 	// Write address channel
 	output logic [ADDR_WIDTH-1:0]    awaddr,
 	output logic [7:0]               awlen,
+	output logic [2:0]				awsize,
 	output logic                     awvalid,
+	output logic [1:0] awburst,
 	input                             awready,
 
 	// Write data channel
@@ -62,6 +58,8 @@ parameter 		SAMPLES_PER_BLOCK = BLOCK_SIZE*BLOCK_SIZE
 	// #1 Read address channel
 	output logic [ADDR_WIDTH-1:0]    araddr,
 	output logic [7:0]               arlen,
+	output logic  [2:0]            arsize,
+	output logic                   arburst,
 	output logic                     arvalid,
 	input                             arready,
 
@@ -73,7 +71,9 @@ parameter 		SAMPLES_PER_BLOCK = BLOCK_SIZE*BLOCK_SIZE
 	
 	// #2 Read address channel
 	output logic [ADDR_WIDTH-1:0]    araddr_2,
-	output logic [7:0]               arlen_2,
+	output logic  [2:0]            arsize_2,
+	output logic                   arburst_2,
+	output logic [31:0]               arlen_2,
 	output logic                     arvalid_2,
 	input                             arready_2,
 
@@ -107,7 +107,6 @@ parameter 		SAMPLES_PER_BLOCK = BLOCK_SIZE*BLOCK_SIZE
 	output logic                   mem2_bready,
 
 	// Read Address Channel
-	output logic [ID_WIDTH-1:0]   mem2_arid,
 	output logic [ADDR_WIDTH-1:0] mem2_araddr,
 	output logic [7:0]            mem2_arlen,
 	output logic [2:0]            mem2_arsize,
@@ -130,26 +129,26 @@ parameter 		SAMPLES_PER_BLOCK = BLOCK_SIZE*BLOCK_SIZE
 	output m_axis_tuser
 );
 
-// logic [31:0] len; // [LS 31.01.25] removing - not used 
-logic start_read;
-logic [ADDR_WIDTH-1:0] read_addr;
-logic [31:0] read_len;
-logic [2:0] read_size;
-logic [1:0] read_burst;
-logic [ADDR_WIDTH-1:0] base_addr_out_memory_writer;
-logic [ADDR_WIDTH-1:0] base_addr_out_noise_est;
-logic start_of_frame;
-logic frame_ready_for_wiener;
-logic start_write;
+	logic start_read;
+	logic [ADDR_WIDTH-1:0] read_addr;
+	logic [31:0] read_len;
+	logic [2:0] read_size;
+	logic [1:0] read_burst;
+	logic [ADDR_WIDTH-1:0] base_addr_out_memory_writer;
+	logic [ADDR_WIDTH-1:0] base_addr_out_noise_est;
+	logic start_of_frame;
+	logic start_write;
+	
 
-
-// RGB mean
-logic [7:0] rgb_mean_out;
-
+	// RGB mean
+	logic [7:0] rgb_mean_out;
+	
+	// noise est
+	logic noise_estimation_en;
+	wire start_data_noise_est;
 
 
 	// Control signals
-	logic [ID_WIDTH-1:0] write_id=0;
 	logic [ADDR_WIDTH-1:0]   	write_addr;
 	logic [31:0]             	write_len;
 	logic [2:0]              	write_size;
@@ -159,6 +158,7 @@ logic [7:0] rgb_mean_out;
 
 // WIENER SIGNALS
 
+	wire frame_ready_for_wiener;
 
 	logic start_read_2;
 	logic [ADDR_WIDTH-1:0] read_addr_2;
@@ -167,8 +167,42 @@ logic [7:0] rgb_mean_out;
 	logic [1:0] read_burst_2;
 	logic end_of_frame_wiener;
 
-	memory_writer #(
-		.DATA_WIDTH(DATA_WIDTH)
+	logic frame_ready_for_noise_est;
+
+// from wiener to AXI output
+	logic                    	start_write_wiener;
+	assign start_write_wiener = data_count % BLOCK_SIZE == 0;
+	logic [DATA_WIDTH-1:0]      mem2_data_in;
+	assign mem2_data_in = data_out_wiener;
+	
+	logic                    	mem2_start_write;
+	logic [ADDR_WIDTH-1:0]   	mem2_write_addr;
+	logic [31:0]             	mem2_write_len;
+	logic [2:0]              	mem2_write_size;
+	logic [1:0]              	mem2_write_burst;
+	logic [DATA_WIDTH-1:0]  	mem2_write_data;
+	logic [DATA_WIDTH/8-1:0]	mem2_write_strb;
+			
+	logic frame_ready;
+	logic [ADDR_WIDTH-1:0] base_addr;
+	
+	 
+	// Control signals
+	logic mem2_start_read;
+	logic [ADDR_WIDTH-1:0] mem2_read_addr;
+	logic [31:0] mem2_read_len;
+	logic [2:0] mem2_read_size;
+	logic [1:0] mem2_read_burst;
+	
+	// Memory Reader AXI Stream Master Interface
+
+
+	logic [DATA_WIDTH-1:0] reader_data_in;
+	logic valid_in;
+	logic last_in;
+	logic user_in;
+
+memory_writer #(.DATA_WIDTH(DATA_WIDTH)
 	) memory_writer_uut (
 		.clk(clk),
 		.rst_n(rst_n),
@@ -190,11 +224,10 @@ logic [7:0] rgb_mean_out;
 		.base_addr_out(base_addr_out_memory_writer)
 	);
 	
-	AXI_memory_master_burst #(
-		.ADDR_WIDTH(ADDR_WIDTH),
+AXI_memory_master_burst_write_only #(.ADDR_WIDTH(ADDR_WIDTH),
 		.DATA_WIDTH(DATA_WIDTH),
 		.ID_WIDTH(ID_WIDTH)
-	) AXI_memory_master_burst_write (
+	) AXI_memory_master_burst_write_only (
 		.clk(clk),
 		.resetn(rst_n),
 		
@@ -208,7 +241,6 @@ logic [7:0] rgb_mean_out;
 		
 		// Write Data Channel
 		.wdata(wdata),
-		.wstrb(wstrb),
 		.wlast(wlast),
 		.wvalid(wvalid),
 		.wready(wready),
@@ -219,20 +251,15 @@ logic [7:0] rgb_mean_out;
 		
 		// Control signals
 		.start_write(start_write),
-		.write_id(write_id),
 		.write_addr(write_addr),
 		.write_len(write_len),
 		.write_size(write_size),
 		.write_burst(write_burst),
 		.write_data(write_data),
-		.write_strb(write_strb),
-		.start_read(start_read)
+		.write_strb(write_strb)
 	);
 
-	memory_reader_noise_estimation #(
-		.ADDR_WIDTH(ADDR_WIDTH),
-		.DATA_WIDTH(DATA_WIDTH),
-		.BLOCK_SIZE(BLOCK_SIZE)
+memory_reader_noise_estimation #(.ADDR_WIDTH(ADDR_WIDTH), .DATA_WIDTH(DATA_WIDTH), .BLOCK_SIZE(BLOCK_SIZE)
 	) memory_reader_noise_estimation_dut (
 		.clk(clk),
 		.rst_n(rst_n),
@@ -250,10 +277,12 @@ logic [7:0] rgb_mean_out;
 		.read_burst(read_burst),
 		.base_addr_out(base_addr_out_noise_est),
 		.start_of_frame(start_of_frame),
+		.noise_estimation_en(noise_estimation_en),
+		.start_data(start_data_noise_est),
 		.frame_ready_for_wiener(frame_ready_for_wiener)
 	);
 
-	AXI_memory_master_burst #(
+	AXI_memory_master_burst_read_only #(
 		.ADDR_WIDTH(ADDR_WIDTH),
 		.DATA_WIDTH(DATA_WIDTH)
 	) AXI_memory_master_burst_read_noise_estimation (
@@ -284,7 +313,7 @@ logic [7:0] rgb_mean_out;
 	// RGB mean
 	RGB_mean #(.DATA_WIDTH(BYTE_DATA_WIDTH)) RGB_mean_dut ( 
 		.en(1), 
-		.data_in(rdata), 
+		.data_in(rdata[23:0]), 
 		.data_out(rgb_mean_out) 
 	 ); 
 	
@@ -300,7 +329,8 @@ logic [7:0] rgb_mean_out;
 		.start_data(start_data_noise_est),  
 		.blocks_per_frame(blocks_per_frame),
 		.estimated_noise(estimated_noise),
-		.estimated_noise_ready(estimated_noise_ready)
+		.estimated_noise_ready(estimated_noise_ready),
+		.mean_ready(noise_estimation_mean_ready)
 	);
 
 
@@ -324,14 +354,19 @@ logic [7:0] rgb_mean_out;
 		.read_len(read_len_2),
 		.read_size(read_size_2),
 		.read_burst(read_burst_2),
+		.wiener_block_stats_en(),
+		.wiener_calc_en(),
+		.start_of_frame(frame_ready_for_wiener),
+		.start_data(),
+		.frame_ready_for_output_reader(),
+		.start_write(),
 		.estimated_noise_ready(estimated_noise_ready),
 		.end_of_frame(end_of_frame_wiener)
 	);
 
-	AXI_memory_master_burst #(
-		.ADDR_WIDTH(ADDR_WIDTH),
+AXI_memory_master_burst_read_only #(.ADDR_WIDTH(ADDR_WIDTH),
 		.DATA_WIDTH(DATA_WIDTH)
-	) AXI_memory_master_burst_wiener (
+	) AXI_memory_master_burst_read_only_wiener (
 		.clk(clk),
 		.resetn(rst_n),
 		
@@ -355,6 +390,7 @@ logic [7:0] rgb_mean_out;
 		.read_burst(read_burst_2)
 		
 	);
+	
 
 
 	wiener_3_channels #( 
@@ -378,53 +414,19 @@ logic [7:0] rgb_mean_out;
 	/////////// WIENER END
 	
 	/////////// from memory to AXI stream
-	
-	// connect to wiener output
-	logic                    	start_write_wiener;
-	assign start_write_wiener = data_count % BLOCK_SIZE == 0;
-	logic [DATA_WIDTH-1:0]      mem2_data_in;
-	assign mem2_data_in = data_out_wiener;
-	
-	logic                    	mem2_start_write;
-	logic [ADDR_WIDTH-1:0]   	mem2_write_addr;
-	logic [31:0]             	mem2_write_len;
-	logic [2:0]              	mem2_write_size;
-	logic [1:0]              	mem2_write_burst;
-	logic [DATA_WIDTH-1:0]  	mem2_write_data;
-	logic [DATA_WIDTH/8-1:0]	mem2_write_strb;
-			
-	logic frame_ready;
-	logic [ADDR_WIDTH-1:0] base_addr;
-	
-	 
-	// Control signals
-	logic [ID_WIDTH-1:0] mem2_write_id=0;
-	logic mem2_start_read;
-	logic [ID_WIDTH-1:0] mem2_read_id;
-	logic [ADDR_WIDTH-1:0] mem2_read_addr;
-	logic [31:0] mem2_read_len;
-	logic [2:0] mem2_read_size;
-	logic [1:0] mem2_read_burst;
-	
-	// Memory Reader AXI Stream Master Interface
-
-
-	logic [DATA_WIDTH-1:0] reader_data_in;
-	logic valid_in;
-	logic last_in;
-	logic user_in;
-
 
 
 	memory_writer_output #(
-		.DATA_WIDTH(DATA_WIDTH)
+		.DATA_WIDTH(DATA_WIDTH),
+		.ADDR_WIDTH(ADDR_WIDTH),
+		.BLOCK_SIZE(BLOCK_SIZE)
 	) memory_writer_output_uut (
 		.clk(clk),
 		.rst_n(rst_n),
 		.pixels_per_frame(pixels_per_frame),
 		.frame_height(frame_height),
 		.frame_width(frame_width),
-		.start_write_in(start_write_wiener),
+		.start_write_in(start_write_wiener), // should be output of wiener memory reader
 		.data_in(mem2_data_in),
 		.wvalid(mem2_wvalid),
 		.wlast(mem2_wlast),
@@ -512,7 +514,6 @@ logic [7:0] rgb_mean_out;
 		.bready(mem2_bready),
 		
 		// Read Address Channel
-		.arid(mem2_arid),
 		.araddr(mem2_araddr),
 		.arlen(mem2_arlen),
 		.arsize(mem2_arsize),
@@ -527,7 +528,6 @@ logic [7:0] rgb_mean_out;
 		
 		// Control signals
 		.start_write(mem2_start_write),
-		.write_id(mem2_write_id),
 		.write_addr(mem2_write_addr),
 		.write_len(mem2_write_len),
 		.write_size(mem2_write_size),
@@ -535,7 +535,6 @@ logic [7:0] rgb_mean_out;
 		.write_data(mem2_write_data),
 		.write_strb(mem2_write_strb),
 		.start_read(mem2_start_read),
-		.read_id(mem2_read_id),
 		.read_addr(mem2_read_addr),
 		.read_len(mem2_read_len),
 		.read_size(mem2_read_size),
@@ -544,7 +543,4 @@ logic [7:0] rgb_mean_out;
 	);
 	
 	
-	
-
-
 endmodule

@@ -82,7 +82,6 @@ module memory_reader_noise_estimation_with_axi_mem_slave_master_tb;
 		.resetn(rst_n),
 		
 		// Read Address Channel
-		.arid(arid),
 		.araddr(araddr),
 		.arlen(arlen),
 		.arsize(arsize),

@@ -96,7 +96,6 @@ module from_memory_slave_to_noise_estimation_tb;
 		.resetn(rst_n),
 		
 		// Read Address Channel
-		.arid(arid),
 		.araddr(araddr),
 		.arlen(arlen),
 		.arsize(arsize),

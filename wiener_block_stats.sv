@@ -93,7 +93,6 @@ shift_register#(
 	.rst_n(shift_reg_rst_n),
 	.serial_in(data_in),
 	.shift_en(shift_en_1),
-
 	.serial_out(serial_lvl_1) // renamed 12.12.24 LK
 );
 
@@ -106,7 +105,6 @@ shift_register#(
 	.rst_n(shift_reg_rst_n),
 	.serial_in(serial_lvl_1), // LS, FYI - the shift registers are concatenated!
 	.shift_en(shift_en_2),
-
 	.serial_out(data_out)
 );
 

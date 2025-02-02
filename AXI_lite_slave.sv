@@ -40,12 +40,12 @@ module AXI_lite_slave #(
 	input  wire                    rready,
 	
 	// register file read/write channel
-	output  logic [3:0]  write_addr,  // 4-bit write address (16 registers)
-	output  logic [31:0] write_data,  // 32-bit write data
+	output  logic [ADDR_WIDTH-1:0]  write_addr,  // 4-bit write address (16 registers)
+	output  logic [DATA_WIDTH-1:0] write_data,  // 32-bit write data
 	output  logic        write_en,    // Write enable
 	
-	output  logic [3:0]  read_addr,   // 4-bit read address (16 registers)
-	input logic [31:0] read_data    // 32-bit read data
+	output  logic [ADDR_WIDTH-1:0]  read_addr,   // 4-bit read address (16 registers)
+	input logic [DATA_WIDTH-1:0] read_data    // 32-bit read data
 );
 
 	// Write State Machine

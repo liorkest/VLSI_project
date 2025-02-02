@@ -82,7 +82,6 @@ AXI_memory_master_burst #(
 	.clk(clk),
 	.resetn(rst_n),
 	// Read Address Channel
-	.arid(arid),
 	.araddr(araddr),
 	.arlen(arlen),
 	.arsize(arsize),
@@ -99,7 +98,6 @@ AXI_memory_master_burst #(
 	.rready(rready),
 	
 	.start_read(start_read),
-	.read_id(read_id),
 	.read_addr(read_addr),
 	.read_len(read_len),
 	.read_size(read_size),

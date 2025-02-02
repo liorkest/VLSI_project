@@ -11,6 +11,7 @@ module AXI_lite_slave_test;
 // Parameters
 parameter ADDR_WIDTH = 4;
 parameter DATA_WIDTH = 32;
+parameter MEM_SIZE = 16;
 
 // Clock and reset signals
 logic clk;
@@ -40,12 +41,12 @@ logic                    rvalid;
 logic                    rready;
 
 // Register file Interface signals
-logic [3:0]              write_addr;
-logic [31:0]             write_data;
+logic [ADDR_WIDTH-1:0]   write_addr;
+logic [DATA_WIDTH-1:0]   write_data;
 logic                    write_en;
 
-logic [3:0]              read_addr;
-logic [31:0]             read_data;
+logic [ADDR_WIDTH-1:0]   read_addr;
+logic [DATA_WIDTH-1:0]   read_data;
 
 // Instantiate the AXI_lite_slave
 AXI_lite_slave #(
@@ -79,7 +80,11 @@ AXI_lite_slave #(
 );
 
 // Instantiate the register_file
-register_file reg_file (
+register_file #(
+	.ADDR_WIDTH(ADDR_WIDTH),
+	.DATA_WIDTH(DATA_WIDTH),
+	.MEM_SIZE(MEM_SIZE)
+) reg_file (
   .clk(clk),
   .resetn(resetn),
   .write_addr(write_addr),

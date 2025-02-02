@@ -14,7 +14,6 @@ module memory_writer #(
 	input  logic                       rst_n,       // Active-low reset signal
 	input  logic [31:0]                pixels_per_frame, // max value allowed: 1280*720
 	input  logic [15:0]                frame_height, // max value allowed <= 720
-	//input  logic [15:0]                frame_width, // max value allowed <= 1280 [LS 31.01.25] - not used
 
 	// AXI Stream slave interface
 	input  logic [DATA_WIDTH-1:0]      s_axis_tdata, // Data signal

@@ -33,13 +33,10 @@ module AXI_memory_master_burst #
 	input  logic                    wready,
 
 	// Write Response Channel
-	//input  logic [ID_WIDTH-1:0]     bid,
-	//input  logic [1:0]              bresp,
 	input  logic                    bvalid,
 	output logic                    bready,
 
 	// Read Address Channel
-	output logic [ID_WIDTH-1:0]     arid,
 	output logic [ADDR_WIDTH-1:0]   araddr,
 	output logic [7:0]              arlen,
 	output logic [2:0]              arsize,
@@ -48,16 +45,13 @@ module AXI_memory_master_burst #
 	input  logic                    arready,
 
 	// Read Data Channel
-	//input  logic [ID_WIDTH-1:0]     rid,  // [LS 31.01.25] not used
-	//input  logic [DATA_WIDTH-1:0]   rdata,  // [LS 31.01.25] not used
-	//input  logic [1:0]              rresp,  // [LS 31.01.25] not used
+
 	input  logic                    rlast,
 	input  logic                    rvalid,
 	output logic                    rready,
 
 	// Control signals - to receive data to stream
 	input  logic                    start_write,
-	input  logic [ID_WIDTH-1:0]     write_id,
 	input  logic [ADDR_WIDTH-1:0]   write_addr,
 	input  logic [31:0]             write_len,
 	input  logic [2:0]              write_size,
@@ -65,7 +59,6 @@ module AXI_memory_master_burst #
 	input  logic [DATA_WIDTH-1:0]   write_data,
 	input  logic [DATA_WIDTH/8-1:0] write_strb,
 	input  logic                    start_read,
-	input  logic [ID_WIDTH-1:0]     read_id,
 	input  logic [ADDR_WIDTH-1:0]   read_addr,
 	input  logic [31:0]             read_len,
 	input  logic [2:0]              read_size,
@@ -127,7 +120,6 @@ always_comb begin
 end
 
 // Write Address Channel
-assign awid = write_id;
 assign awaddr = write_burst_addr;
 assign awlen = write_len;  // Burst length
 assign awsize = write_size;
@@ -191,7 +183,6 @@ always_comb begin
 end
 
 // Read Address Channel
-assign arid = read_id;
 assign araddr = read_burst_addr;
 assign arlen = read_len;  // Burst length
 assign arsize = read_size;

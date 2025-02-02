@@ -164,7 +164,6 @@ module memory_writer_with_axi_mem_tb;
 		
 		// Control signals
 		.start_write(start_write),
-		.write_id(write_id),
 		.write_addr(write_addr),
 		.write_len(write_len),
 		.write_size(write_size),

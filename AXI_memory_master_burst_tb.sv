@@ -106,7 +106,6 @@ AXI_memory_master_burst #(
 	.bready(bready),
 
 	// Read Address Channel
-	.arid(arid),
 	.araddr(araddr),
 	.arlen(arlen),
 	.arsize(arsize),
@@ -124,7 +123,6 @@ AXI_memory_master_burst #(
 
 	// Control signals
 	.start_write(start_write),
-	.write_id(write_id),
 	.write_addr(write_addr),
 	.write_len(write_len),
 	.write_size(write_size),
@@ -132,7 +130,6 @@ AXI_memory_master_burst #(
 	.write_data(write_data),
 	.write_strb(write_strb),
 	.start_read(start_read),
-	.read_id(read_id),
 	.read_addr(read_addr),
 	.read_len(read_len),
 	.read_size(read_size),
