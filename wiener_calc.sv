@@ -47,12 +47,12 @@ logic quotient_sign;
 logic data_mean_diff_sign;
 logic [DATA_WIDTH-1:0] abs_data_mean_diff;
 assign quotient_sign = (variance_of_block >= noise_variance) ? 1'b1 : 1'b0; // 1 - positive, 0 - negative
-assign data_mean_diff_sign = (data_in >= mean_of_block) ? 1'b1 : 1'b0;
+assign data_mean_diff_sign = ({{DATA_WIDTH{1'd0}},data_in} >= mean_of_block) ? 1'b1 : 1'b0;
 assign abs_data_mean_diff = (data_mean_diff_sign) ? data_in - mean_of_block[DATA_WIDTH-1:0] : mean_of_block[DATA_WIDTH-1:0] -data_in;
 
 typedef enum logic [2:0] {
-	IDLE = 0,
-	CALCULATE = 1
+	IDLE = 3'd0,
+	CALCULATE = 3'd1
  } state_t;
 
 state_t state, next_state;
@@ -97,7 +97,7 @@ always_ff @(posedge clk or negedge rst_n) begin
 		data_out <= 0;
 		data_out_unclipped <= 0;
 	end else begin
-		if (state == IDLE && !next_state == CALCULATE) begin
+		if (state == IDLE && next_state != CALCULATE) begin
 			data_count <= 0;
 		end else if (state == CALCULATE ) begin  // [19.12.24 LK] changed back
 			if (data_count > TOTAL_SAMPLES + 1) begin // +1 due to delay by 2 cycles of data_out

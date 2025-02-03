@@ -170,7 +170,7 @@ logic [7:0] rgb_mean_out;
 	logic [2:0]              	write_size;
 	logic [1:0]              	write_burst;
 	logic [DATA_WIDTH-1:0]  	write_data;
-	logic [DATA_WIDTH/8-1:0]	write_strb;
+	//logic [DATA_WIDTH/8-1:0]	write_strb;
 
 // WIENER SIGNALS
 
@@ -206,7 +206,7 @@ logic [7:0] rgb_mean_out;
 		.write_size(write_size),
 		.write_burst(write_burst),
 		.write_data(write_data),
-		.write_strb(write_strb),
+		//.write_strb(write_strb),
 		.frame_ready(frame_ready_for_noise_est),
 		.base_addr_out(base_addr_out_memory_writer)
 		
@@ -231,7 +231,7 @@ logic [7:0] rgb_mean_out;
 		
 		// Write Data Channel
 		.wdata(wdata),
-		.wstrb(wstrb),
+		//.wstrb(wstrb),
 		.wlast(wlast),
 		.wvalid(wvalid),
 		.wready(wready),
@@ -249,7 +249,7 @@ logic [7:0] rgb_mean_out;
 		.write_size(write_size),
 		.write_burst(write_burst),
 		.write_data(write_data),
-		.write_strb(write_strb),
+		//.write_strb(write_strb),
 		.start_read(start_read)
 	);
 	
@@ -318,8 +318,8 @@ logic [7:0] rgb_mean_out;
 		.read_burst(read_burst),
 		.base_addr_out(base_addr_out_noise_est),
 		//.noise_estimation_en(noise_estimation_en),
-		.start_of_frame(start_of_frame),
-		.frame_ready_for_wiener(frame_ready_for_wiener)
+		.start_of_frame(start_of_frame)
+		//.frame_ready_for_wiener(frame_ready_for_wiener)
 	);
 
 	AXI_memory_master_burst #(

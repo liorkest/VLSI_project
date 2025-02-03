@@ -39,7 +39,7 @@ parameter 		SAMPLES_PER_BLOCK = BLOCK_SIZE*BLOCK_SIZE
 	
 	// Write address channel
 	output logic [ADDR_WIDTH-1:0]    awaddr,
-	output logic [7:0]               awlen,
+	output logic [31:0]               awlen,
 	output logic [2:0]				awsize,
 	output logic                     awvalid,
 	output logic [1:0] awburst,
@@ -57,9 +57,9 @@ parameter 		SAMPLES_PER_BLOCK = BLOCK_SIZE*BLOCK_SIZE
 
 	// #1 Read address channel
 	output logic [ADDR_WIDTH-1:0]    araddr,
-	output logic [7:0]               arlen,
+	output logic [31:0]               arlen,
 	output logic  [2:0]            arsize,
-	output logic                   arburst,
+	output logic   [1:0]                arburst,
 	output logic                     arvalid,
 	input                             arready,
 
@@ -72,7 +72,7 @@ parameter 		SAMPLES_PER_BLOCK = BLOCK_SIZE*BLOCK_SIZE
 	// #2 Read address channel
 	output logic [ADDR_WIDTH-1:0]    araddr_2,
 	output logic  [2:0]            arsize_2,
-	output logic                   arburst_2,
+	output logic  [1:0]                 arburst_2,
 	output logic [31:0]               arlen_2,
 	output logic                     arvalid_2,
 	input                             arready_2,
@@ -129,6 +129,14 @@ parameter 		SAMPLES_PER_BLOCK = BLOCK_SIZE*BLOCK_SIZE
 	output m_axis_tuser
 );
 
+
+wire wiener_block_stats_en;
+wire wiener_calc_en;
+wire start_of_frame_wiener;
+wire start_data_wiener;
+//wire frame_ready_for_wiener;
+
+
 	logic start_read;
 	logic [ADDR_WIDTH-1:0] read_addr;
 	logic [31:0] read_len;
@@ -158,7 +166,7 @@ parameter 		SAMPLES_PER_BLOCK = BLOCK_SIZE*BLOCK_SIZE
 
 // WIENER SIGNALS
 
-	wire frame_ready_for_wiener;
+	//wire frame_ready_for_wiener;
 
 	logic start_read_2;
 	logic [ADDR_WIDTH-1:0] read_addr_2;
@@ -222,6 +230,7 @@ memory_writer #(.DATA_WIDTH(DATA_WIDTH)
 		.write_strb(write_strb),
 		.frame_ready(frame_ready_for_noise_est),
 		.base_addr_out(base_addr_out_memory_writer)
+		
 	);
 	
 AXI_memory_master_burst_write_only #(.ADDR_WIDTH(ADDR_WIDTH),
@@ -255,8 +264,7 @@ AXI_memory_master_burst_write_only #(.ADDR_WIDTH(ADDR_WIDTH),
 		.write_len(write_len),
 		.write_size(write_size),
 		.write_burst(write_burst),
-		.write_data(write_data),
-		.write_strb(write_strb)
+		.write_data(write_data)
 	);
 
 memory_reader_noise_estimation #(.ADDR_WIDTH(ADDR_WIDTH), .DATA_WIDTH(DATA_WIDTH), .BLOCK_SIZE(BLOCK_SIZE)
@@ -278,8 +286,8 @@ memory_reader_noise_estimation #(.ADDR_WIDTH(ADDR_WIDTH), .DATA_WIDTH(DATA_WIDTH
 		.base_addr_out(base_addr_out_noise_est),
 		.start_of_frame(start_of_frame),
 		.noise_estimation_en(noise_estimation_en),
-		.start_data(start_data_noise_est),
-		.frame_ready_for_wiener(frame_ready_for_wiener)
+		.start_data(start_data_noise_est)
+		//.frame_ready_for_wiener(frame_ready_for_wiener)
 	);
 
 	AXI_memory_master_burst_read_only #(
@@ -312,7 +320,7 @@ memory_reader_noise_estimation #(.ADDR_WIDTH(ADDR_WIDTH), .DATA_WIDTH(DATA_WIDTH
 	
 	// RGB mean
 	RGB_mean #(.DATA_WIDTH(BYTE_DATA_WIDTH)) RGB_mean_dut ( 
-		.en(1), 
+		.en(1'b1), 
 		.data_in(rdata[23:0]), 
 		.data_out(rgb_mean_out) 
 	 ); 
@@ -354,14 +362,16 @@ memory_reader_noise_estimation #(.ADDR_WIDTH(ADDR_WIDTH), .DATA_WIDTH(DATA_WIDTH
 		.read_len(read_len_2),
 		.read_size(read_size_2),
 		.read_burst(read_burst_2),
-		.wiener_block_stats_en(),
-		.wiener_calc_en(),
-		.start_of_frame(frame_ready_for_wiener),
-		.start_data(),
-		.frame_ready_for_output_reader(),
-		.start_write(),
+
+		.wiener_block_stats_en(wiener_block_stats_en),
+		.wiener_calc_en(wiener_calc_en),
+		.start_of_frame(start_of_frame_wiener),
+		.start_data(start_data_wiener),
+		//.frame_ready_for_output_reader(),
+		//.start_write(),
 		.estimated_noise_ready(estimated_noise_ready),
-		.end_of_frame(end_of_frame_wiener)
+		.end_of_frame(end_of_frame_wiener),
+		.start_write()
 	);
 
 AXI_memory_master_burst_read_only #(.ADDR_WIDTH(ADDR_WIDTH),
@@ -393,8 +403,8 @@ AXI_memory_master_burst_read_only #(.ADDR_WIDTH(ADDR_WIDTH),
 	
 
 
-	wiener_3_channels #( 
-		.DATA_WIDTH(DATA_WIDTH), 
+
+wiener_3_channels #(.DATA_WIDTH(DATA_WIDTH), 
 		.TOTAL_SAMPLES(SAMPLES_PER_BLOCK) 
 	  ) wiener_3_channels_dut ( 
 		.clk(clk),
@@ -459,7 +469,7 @@ AXI_memory_master_burst_read_only #(.ADDR_WIDTH(ADDR_WIDTH),
 		.arready(mem2_arready),
 		.rdata(mem2_rdata),
 		.rvalid(mem2_rvalid),
-		.rlast(mem2_rlast),
+		//.rlast(mem2_rlast),
 		.m_axis_tdata(reader_data_in),
 		.m_axis_tvalid(valid_in),
 		.m_axis_tready(m_axis_tready),

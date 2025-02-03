@@ -33,6 +33,7 @@ module AXI_stream_master_tb;
 		.m_axis_tready(m_axis_tready),
 		.m_axis_tlast(m_axis_tlast),
 		.m_axis_tuser(m_axis_tuser)
+		
 	);
 
 	// Clock generation

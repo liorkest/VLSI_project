@@ -27,8 +27,8 @@ module mean_unit #(
 		if (!rst_n) begin
 			sum <= 0;
 			count <= 0;
-			mean_out <= 0;
-			ready <=0;
+			mean_out <= {2*DATA_WIDTH{1'd0}};
+			ready <=1'd0;
 		end else if (count < total_samples && !start_data_in && !ready)  begin
 			if (en) begin
 					sum <= sum + data_in;
@@ -37,14 +37,14 @@ module mean_unit #(
 		end else if (count == total_samples) begin
 			sum <= 0;
 			count <= 0;
-			ready <= 1;
+			ready <= 1'd1;
 			mean_out <= sum >> $clog2(total_samples);
 		end
 		
 		if (start_data_in) begin
 				count <= 0;
 				sum <= 0;
-				ready <= 0;
+				ready <= 1'd0;
 				//mean_out <= 0; [05.12.24]
 		end
 

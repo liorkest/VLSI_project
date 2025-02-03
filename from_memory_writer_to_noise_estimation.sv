@@ -186,7 +186,6 @@ logic start_of_frame_noise_estimation;
 		
 		// Control signals
 		.start_write(start_write),
-		.write_id(write_id),
 		.write_addr(write_addr),
 		.write_len(write_len),
 		.write_size(write_size),
@@ -277,7 +276,6 @@ logic start_of_frame_noise_estimation;
 		.resetn(rst_n),
 		
 		// Read Address Channel
-		.arid(arid),
 		.araddr(araddr),
 		.arlen(arlen),
 		.arsize(arsize),

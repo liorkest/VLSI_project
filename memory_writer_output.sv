@@ -64,105 +64,106 @@ state_t state, next_state;
 		always_ff @(posedge clk or negedge rst_n) begin
 			if (!rst_n) begin
 				state <= IDLE;
-				frame_count <= 0;
-				start_write_out <= 0;
-				start_write_flag <= 0;
+				frame_count <= 2'd0;
+				start_write_out <= 1'd0;
+				start_write_flag <= 1'd0;
 				base_addr_out <= 0;
 				write_addr <= 0;
 				addr_holder <= 0;
-				row_counter <= 0;
-				col_counter <= 0;
-				pixel_x <= 0;
-				pixel_y <= 0;
-				frame_ready <= 0;
-				frame_ready_flag <= 0;
+				row_counter <= 16'd0;
+				col_counter <= 16'd0;
+				pixel_x <= 4'd0;
+				pixel_y <= 4'd0;
+				frame_ready <= 1'd0;
+				frame_ready_flag <= 1'd0;
+				curr_base_addr <= 0;
 			end else begin
 				state <= next_state;
 				
 				if (state == IDLE) begin
-					start_write_out <= 0;
-					start_write_flag <= 0;
+					start_write_out <= 1'd0;
+					start_write_flag <= 1'd0;
 					write_addr <= 0;
 					addr_holder <= 0;
-					row_counter <= 0;
-					col_counter <= 0;
-					pixel_x <= 0;
-					pixel_y <= 0;
-					frame_ready <= 0;
-					frame_ready_flag <= 0;
+					row_counter <= 16'd0;
+					col_counter <= 16'd0;
+					pixel_x <= 4'd0;
+					pixel_y <= 4'd0;
+					frame_ready <= 1'd0;
+					frame_ready_flag <= 1'd0;
 					
 					if (next_state == WRITE_HANDSHAKE) begin
 						curr_base_addr <= frame_base_addr;
 						write_addr <= frame_base_addr;
-						start_write_out <= 1;
-						start_write_flag <= 1;
+						start_write_out <= 1'd1;
+						start_write_flag <= 1'd1;
 					end
 					
 				end else if (state == WRITE_HANDSHAKE) begin
 					if (!start_write_flag) begin
-						start_write_out <= 1;
-						start_write_flag <= 1;
+						start_write_out <= 1'd1;
+						start_write_flag <= 1'd1;
 						end else begin
-						start_write_out <= 0;
+						start_write_out <= 1'd0;
 					end		
 				
 				end else if (state == WRITE) begin
-					start_write_flag <= 0;
+					start_write_flag <= 1'd0;
 					
 					if (row_counter < (frame_height >> $clog2(BLOCK_SIZE))) begin
 						if (col_counter < (frame_width >> $clog2(BLOCK_SIZE))) begin
 							if (pixel_y < BLOCK_SIZE - 1) begin
 								if (pixel_x < BLOCK_SIZE - 1) begin
-									pixel_x <= pixel_x + 1;
+									pixel_x <= pixel_x + 4'd1;
 								end else begin
-									pixel_x <= 0;
-									pixel_y <= pixel_y + 1;
+									pixel_x <= 4'd0;
+									pixel_y <= pixel_y + 4'd1;
 								end
 							end else if (pixel_x == BLOCK_SIZE - 1) begin
-									pixel_x <= 0;
-									pixel_y <= 0;
-									col_counter <= col_counter + 1;
+									pixel_x <= 4'd0;
+									pixel_y <= 4'd0;
+									col_counter <= col_counter + 16'd1;
 							end else begin
-								pixel_x <= pixel_x + 1;		
+								pixel_x <= pixel_x + 4'd1;		
 							end
 							if (col_counter == (frame_width >> $clog2(BLOCK_SIZE)) - 1 && pixel_y == BLOCK_SIZE -1 && pixel_x == BLOCK_SIZE - 1) begin
-								col_counter <= 0;
-								row_counter <= row_counter + 1;
+								col_counter <= 16'd0;
+								row_counter <= row_counter + 16'd1;
 							end
 						end 
 						if (row_counter == (frame_height >> $clog2(BLOCK_SIZE)) - 1 && col_counter == (frame_width >> $clog2(BLOCK_SIZE)) - 1 
 								&& pixel_y == BLOCK_SIZE -1 && pixel_x == BLOCK_SIZE - 1) begin
-							col_counter <= 0;
-							row_counter <= 0;
+							col_counter <= 16'd0;
+							row_counter <= 16'd0;
 						end
 					end
 					if (pixel_x == BLOCK_SIZE - 2) begin
 						if (pixel_y < BLOCK_SIZE - 1) begin
-							addr_holder <= curr_base_addr + col_counter * BLOCK_SIZE + frame_width * row_counter * BLOCK_SIZE + frame_width * (pixel_y+1);
+							addr_holder <= curr_base_addr + col_counter * BLOCK_SIZE + frame_width * row_counter * BLOCK_SIZE + frame_width * (pixel_y+4'd1);
 						end else if (col_counter < (frame_width >> $clog2(BLOCK_SIZE)) - 1) begin
 							addr_holder <= curr_base_addr + (col_counter+1) * BLOCK_SIZE + frame_width * row_counter * BLOCK_SIZE;
 						end else begin
-							addr_holder <= curr_base_addr + frame_width * (row_counter+1) * BLOCK_SIZE;
+							addr_holder <= curr_base_addr + frame_width * (row_counter+16'd1) * BLOCK_SIZE;
 						end
 					end
 
 					if (next_state == WRITE_HANDSHAKE) begin
 						if (!start_write_flag) begin
-							start_write_out <= 1;
+							start_write_out <= 1'd1;
 						end 
 						write_addr <= addr_holder;
 					end else if (next_state == FRAME_READY) begin
-						frame_ready <= 1;
+						frame_ready <= 1'b1;
 					end
 					
 				end else if (state == FRAME_READY) begin
 					if (frame_ready_flag) begin
-						frame_ready <= 0;
+						frame_ready <= 1'd0;
 					end else begin
-						frame_ready_flag <= 1;
-						frame_count <= frame_count + 1;
+						frame_ready_flag <= 1'd1;
+						frame_count <= frame_count + 2'd1;
 						if (frame_count == 2) begin
-							frame_count <= 0;
+							frame_count <= 2'd0;
 						end 
 					end
 					base_addr_out <= curr_base_addr;
@@ -174,13 +175,13 @@ state_t state, next_state;
 always_comb begin
 	next_state = state; 
 	write_strb = 4'b1111;
-	write_burst = 1;
-	write_size = 2;
+	write_burst = 2'd1;
+	write_size = 3'd2;
 	write_len = BLOCK_SIZE;
 	case (state)
 		IDLE: begin
 			write_len = 0; 
-			write_burst = 0; 
+			write_burst = 2'd0; 
 			if (start_write_in) begin
 				next_state = WRITE_HANDSHAKE;
 			end

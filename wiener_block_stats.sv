@@ -35,21 +35,6 @@ logic mean_ready; // added LK [12.12.24]
 logic [2*DATA_WIDTH-1:0]  block_mean;
 logic [DATA_WIDTH-1:0] serial_lvl_1; // renamed 12.12.24 LK
 
-/* removed by LK [12.12.24] 
-logic is_first_block;
-
-always_ff @(posedge clk or negedge rst_n) begin
-	if (!rst_n || start_of_frame) begin
-		mean_out <= 0;
-		is_first_block <= 0;
-	end
-	if (variance_ready) begin 
-		if (!is_first_block)
-			//mean_out <= block_mean;
-		else
-			is_first_block <= 0;
-	end
-end*/
 
 
 wiener_block_stats_FSM #(
@@ -129,7 +114,7 @@ variance_unit #(
 	.rst_n(rst_n),
 	.data_in(serial_lvl_1),
 	.start_data_in(variance_start_of_data),
-	.mean_in(block_mean),
+	.mean_in(block_mean[DATA_WIDTH-1:0]),
 	.variance_out(block_variance),
 	.ready(variance_ready)
 );

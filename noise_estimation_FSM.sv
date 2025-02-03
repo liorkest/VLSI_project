@@ -33,9 +33,9 @@ logic [1:0] mean_ready_counter;
 
 
 typedef enum logic [2:0] {
-	IDLE = 0,
-	READ_BLOCK = 1,
-	WAIT_FOR_MEAN = 2
+	IDLE = 3'd0,
+	READ_BLOCK = 3'd1,
+	WAIT_FOR_MEAN = 3'd2
  } state_t;
 
 state_t state, next_state;

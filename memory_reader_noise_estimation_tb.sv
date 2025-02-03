@@ -71,8 +71,8 @@ module memory_reader_noise_estimation_tb;
 		.read_burst(read_burst),
 		.base_addr_out(base_addr_out),
 		.noise_estimation_en(noise_estimation_en),
-		.start_of_frame(start_of_frame),
-		.frame_ready_for_wiener(frame_ready_for_wiener)
+		.start_of_frame(start_of_frame)
+		//.frame_ready_for_wiener(frame_ready_for_wiener)
 	);
 
 	AXI_memory_master_burst #(

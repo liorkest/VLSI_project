@@ -26,8 +26,8 @@ module noise_estimation #(
 
 
 typedef enum logic [1:0] {
-	PENDING = 0,
-	CALCULATING = 1
+	PENDING = 2'd0,
+	CALCULATING = 2'd1
  } state_t;
 
 state_t state, next_state;

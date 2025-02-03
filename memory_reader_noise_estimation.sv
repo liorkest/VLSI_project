@@ -30,8 +30,8 @@ module memory_reader_noise_estimation #(
 	output  logic [ADDR_WIDTH-1:0]   base_addr_out,
 	output  logic                    noise_estimation_en,
 	output  logic                    start_of_frame,
-	output  logic                    start_data,
-	output  logic                    frame_ready_for_wiener
+	output  logic                    start_data
+	//output  logic                    frame_ready_for_wiener
 );
 
 logic [15:0] row_counter;
@@ -57,119 +57,122 @@ state_t state, next_state;
 always_ff @(posedge clk or negedge rst_n) begin
 	if (!rst_n) begin
 		state <= IDLE;
-		start_read <= 0;
-		start_read_flag <= 0;
+		start_read <= 1'd0;
+		start_read_flag <= 1'd0;
 		base_addr_out <= 0;
-		noise_estimation_en <= 0;
+		noise_estimation_en <= 1'd0;
 		read_addr <= 0;
 		addr_holder <= 0;
-		frame_ready_for_wiener <= 0;
-		row_counter <= 0;
-		col_counter <= 0;
-		pixel_x <= 0;
-		pixel_y <= 0;
-		start_of_frame <= 0;
-		start_data <= 0;
+		//frame_ready_for_wiener <= 1'd0;
+		row_counter <= 16'd0;
+		col_counter <= 16'd0;
+		pixel_x <= 4'd0;
+		pixel_y <= 4'd0;
+		start_of_frame <= 1'd0;
+		start_data <= 1'd0;
+		curr_base_addr <= 0;
 	end else begin
 		state <= next_state;
 		
 		if (state == IDLE) begin
-			noise_estimation_en <= 0;
+			noise_estimation_en <= 1'd0;
 			read_addr <= 0;
-			frame_ready_for_wiener <= 0;
-			row_counter <= 0;
-			col_counter <= 0;
-			pixel_x <= 0;
-			pixel_y <= 0;
-			start_of_frame <= 0;
-			start_data <= 0;
+			//frame_ready_for_wiener <= 1'd0;
+			row_counter <= 16'd0;
+			col_counter <= 16'd0;
+			pixel_x <= 4'd0;
+			pixel_y <= 4'd0;
+			start_of_frame <= 1'd0;
+			start_data <= 1'd0;
 			
 			if (next_state == READ_HANDSHAKE) begin
 				curr_base_addr <= base_addr_in;
 				read_addr <= base_addr_in;
 				if (!start_read_flag) begin
-					start_read <= 1;
+					start_read <= 1'd1;
 				end
 			end
 			
 		end else if (state == READ_HANDSHAKE) begin
-			start_of_frame <= 0;
-			start_data <= 0;
+			start_of_frame <= 1'd0;
+			start_data <= 1'd0;
 			if (start_read) begin
-				start_read_flag <= 1;
-				start_read <= 0;
+				start_read_flag <= 1'd1;
+				start_read <= 1'd0;
 			end
-			noise_estimation_en <= 0; // [LS 06.01.25] noise estimation should be enabled only when state is READ
+			noise_estimation_en <= 1'd0; // [LS 06.01.25] noise estimation should be enabled only when state is READ
 			
 			if (next_state == READ) begin
-				if (pixel_x == 0 && pixel_y == 0) begin
-					start_data <= 1;
-					noise_estimation_en <= 1; // [LS 06.01.25] noise estimation should be enabled only when state is READ
-					if (row_counter == 0 && col_counter == 0) begin
-						start_of_frame <= 1;
+				if (pixel_x == 4'd0 && pixel_y == 4'd0) begin
+					start_data <= 1'd1;
+					noise_estimation_en <= 1'd1; // [LS 06.01.25] noise estimation should be enabled only when state is READ
+					if (row_counter == 16'd0 && col_counter == 16'd0) begin
+						start_of_frame <= 1'd1;
 					end
 				end
 			end			
 		
 		end else if (state == READ) begin
-			start_of_frame <= 0;
-			start_data <= 0;
-			start_read_flag <= 0;
-			noise_estimation_en <= 1; // [LS 06.01.25] noise estimation should be enabled only when state is READ
+			start_of_frame <= 1'd0;
+			start_data <= 1'd0;
+			start_read_flag <= 1'd0;
+			noise_estimation_en <= 1'd1; // [LS 06.01.25] noise estimation should be enabled only when state is READ
 			
 			if (row_counter < (frame_height >> $clog2(BLOCK_SIZE))) begin
 				if (col_counter < (frame_width >> $clog2(BLOCK_SIZE))) begin
 					if (pixel_y < BLOCK_SIZE - 1) begin
 						if (pixel_x < BLOCK_SIZE - 1) begin
-							pixel_x <= pixel_x + 1;
+							pixel_x <= pixel_x + 4'd1;
 						end else begin
-							pixel_x <= 0;
-							pixel_y <= pixel_y + 1;
+							pixel_x <= 4'd0;
+							pixel_y <= pixel_y + 4'd1;
 						end
 					end else if (pixel_x == BLOCK_SIZE - 1) begin
-							pixel_x <= 0;
-							pixel_y <= 0;
-							col_counter <= col_counter + 1;
+							pixel_x <= 4'd0;
+							pixel_y <= 4'd0;
+							col_counter <= col_counter + 16'd1;
 					end else begin
-						pixel_x <= pixel_x + 1;		
+						pixel_x <= pixel_x + 4'd1;		
 					end
 					if (col_counter == (frame_width >> $clog2(BLOCK_SIZE)) - 1 && pixel_y == BLOCK_SIZE -1 && pixel_x == BLOCK_SIZE - 1) begin
-						col_counter <= 0;
-						row_counter <= row_counter + 1;
+						col_counter <= 16'd0;
+						row_counter <= row_counter + 16'd1;
 					end
 				end 
 				if (row_counter == (frame_height >> $clog2(BLOCK_SIZE)) - 1 && col_counter == (frame_width >> $clog2(BLOCK_SIZE)) - 1 
 						&& pixel_y == BLOCK_SIZE -1 && pixel_x == BLOCK_SIZE - 1) begin
-					col_counter <= 0;
-					row_counter <= 0;
+					col_counter <= 16'd0;
+					row_counter <= 16'd0;
 				end
 			end
 			// -> [LS 06.01.25] because of the multiplication, need to calculate new address one cycle before update 
 			if (pixel_x == BLOCK_SIZE - 2) begin
 				if (pixel_y < BLOCK_SIZE - 1) begin
-					addr_holder <= curr_base_addr + col_counter * BLOCK_SIZE + frame_width * row_counter * BLOCK_SIZE + frame_width * (pixel_y+1);
+					addr_holder <= (curr_base_addr + col_counter) >> $clog2(BLOCK_SIZE) +
+									(frame_width * row_counter)>> $clog2(BLOCK_SIZE) + 
+										frame_width * (pixel_y+4'd1);
 				end else if (col_counter < (frame_width >> $clog2(BLOCK_SIZE)) - 1) begin
-					addr_holder <= curr_base_addr + (col_counter+1) * BLOCK_SIZE + frame_width * row_counter * BLOCK_SIZE;
+					addr_holder <= curr_base_addr + (col_counter+16'd1) * BLOCK_SIZE +( frame_width * row_counter) >> $clog2(BLOCK_SIZE);
 				end else begin
-					addr_holder <= curr_base_addr + frame_width * (row_counter+1) * BLOCK_SIZE;
+					addr_holder <= curr_base_addr + (frame_width * (row_counter+16'd1)) >> $clog2(BLOCK_SIZE);
 				end
 			end
 
 			if (next_state == READ_HANDSHAKE) begin
 				if (!start_read_flag) begin
-					start_read <= 1;
+					start_read <= 1'd1;
 				end 
 				read_addr <= addr_holder;
 			end
 			
 		end else if (state == FRAME_READY) begin
-			start_of_frame <= 0;
-			start_data <= 0;
+			start_of_frame <= 1'd0;
+			start_data <= 1'd0;
 			base_addr_out <= curr_base_addr;
 			if (next_state == IDLE) begin
 				// base_addr_out <= curr_base_addr;
-				frame_ready_for_wiener <= 1;
-				noise_estimation_en <= 0;
+				//frame_ready_for_wiener <= 1'd1;
+				noise_estimation_en <= 1'd0;
 			end
 		end
 		
@@ -182,13 +185,13 @@ end
 always_comb begin
 	next_state = state;
 	read_len = BLOCK_SIZE;
-	read_size = 2;
-	read_burst = 1;
+	read_size = 3'd2;
+	read_burst = 2'd1;
 	//start_of_frame = 0;
 	case (state)
 		IDLE: begin
 			read_len = 0;
-			read_burst = 0;
+			read_burst = 2'd0;
 			if (frame_ready) begin
 				next_state = READ_HANDSHAKE;
 			end

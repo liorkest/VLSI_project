@@ -33,10 +33,10 @@ logic [1:0] mean_ready_counter;
 logic variance_ready_flag; // [19.12.24 LK added]
 
 typedef enum logic [2:0] {
-	IDLE = 0,
-	READ_BLOCK = 1,
-	WAIT_FOR_MEAN = 2,
-	EMPTY_BUFFER = 3
+	IDLE = 3'd0,
+	READ_BLOCK = 3'd1,
+	WAIT_FOR_MEAN = 3'd2,
+	EMPTY_BUFFER = 3'd3
  } state_t;
 
 state_t state, next_state;
@@ -143,7 +143,7 @@ always_ff @(posedge clk or negedge rst_n) begin
 			end
 			
 			if (mean_ready) begin
-				mean_ready_counter <= mean_ready_counter + 1;
+				mean_ready_counter <= mean_ready_counter + 2'd1;
 				variance_start_of_data <= 0;
 			end
 			if (mean_ready_counter == 2) begin

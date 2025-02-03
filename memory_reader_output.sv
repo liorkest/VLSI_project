@@ -27,7 +27,7 @@ module memory_reader_output #(
 	input  logic                       arready,
 	input  logic [DATA_WIDTH-1:0]      rdata,
 	input  logic                       rvalid,
-	input  logic                       rlast,
+	//input  logic                       rlast,
 
 	// AXI Stream Master Interface
 	output logic [DATA_WIDTH-1:0]      m_axis_tdata,
@@ -57,14 +57,14 @@ always_ff @(posedge clk or negedge rst_n) begin
 	if (!rst_n) begin
 		state <= IDLE;
 		current_pixel_count <= 0;
-		current_line_count <= 0;
+		current_line_count <= 16'd0;
 		current_read_addr <= 0;
 	end else begin
 		state <= next_state;
 		
 		if (state == IDLE) begin
 			current_pixel_count <= 0;
-			current_line_count <= 0;
+			current_line_count <= 16'd0;
 			if (next_state == READ) begin
 				current_read_addr <= base_addr;
 			end
@@ -75,7 +75,7 @@ always_ff @(posedge clk or negedge rst_n) begin
 				current_pixel_count <= current_pixel_count + 1;
 				if (current_pixel_count == frame_width - 1) begin
 					current_pixel_count <= 0;
-					current_line_count <= current_line_count + 1;
+					current_line_count <= current_line_count + 16'd1;
 				end
 			end
 		end
