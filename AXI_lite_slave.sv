@@ -19,12 +19,12 @@ module AXI_lite_slave #(
 
 	// Write Data Channel
 	input  wire [DATA_WIDTH-1:0]   wdata,
-	input  wire [DATA_WIDTH/8-1:0] wstrb,
+	input  wire  wstrb,
 	input  wire                    wvalid,
 	output wire                    wready,
 
 	// Write Response Channel
-	output wire [1:0]              bresp,
+	output wire               bresp,
 	output wire                    bvalid,
 	input  wire                    bready,
 
@@ -35,16 +35,16 @@ module AXI_lite_slave #(
 
 	// Read Data Channel
 	output wire [DATA_WIDTH-1:0]   rdata,
-	output wire [1:0]              rresp,
+	output wire              rresp,
 	output wire                    rvalid,
 	input  wire                    rready,
 	
 	// register file read/write channel
-	output  logic [ADDR_WIDTH-1:0]  write_addr,  // 4-bit write address (16 registers)
+	output  logic [ADDR_WIDTH-1:0]  write_addr,  
 	output  logic [DATA_WIDTH-1:0] write_data,  // 32-bit write data
 	output  logic        write_en,    // Write enable
 	
-	output  logic [ADDR_WIDTH-1:0]  read_addr,   // 4-bit read address (16 registers)
+	output  logic [ADDR_WIDTH-1:0]  read_addr,   
 	input logic [DATA_WIDTH-1:0] read_data    // 32-bit read data
 );
 
@@ -106,20 +106,21 @@ module AXI_lite_slave #(
 	always_ff @(posedge clk or negedge resetn) begin
 		if (!resetn) begin
 			// Reset logic
-		end else if (write_state == WRITE_DATA && wvalid && wready) begin
+			write_addr <= 0;
+			write_en<= 0;
+					write_data<= 0;
+		end else if (write_state == WRITE_DATA && wvalid && wready && wstrb != '0) begin
 			// Write to register file
-			if (wstrb != '0)
 				write_en <= 1'b1;
-				write_addr <= awaddr[3:0];
-				write_data <= wdata;
-				
+				write_addr <= awaddr[ADDR_WIDTH-1:0];
+				write_data <= wdata;		
 		end
 	end
 
 	assign wready = (write_state == WRITE_DATA);
 
 	// Write Response Channel
-	assign bresp = 2'b00; // OKAY response
+	assign bresp = 0; // OKAY response
 	assign bvalid = (write_state == WRITE_RESP);
 
 	// Read State Machine - Sequential Logic
@@ -133,17 +134,20 @@ module AXI_lite_slave #(
 	// Read State Machine - Combinational Logic
 	always_comb begin
 		read_state_next = read_state;
+		read_addr=0;
 		case (read_state)
 			READ_IDLE: begin
+				read_addr=0;
 				if (arvalid)
 					read_state_next = READ_ADDR;
 			end
 			READ_ADDR: begin
+				read_addr=0;
 				if (arvalid && arready)
 					read_state_next = READ_DATA;
 			end
 			READ_DATA: begin
-				read_addr <= araddr[3:0];
+				read_addr = araddr[ADDR_WIDTH-1:0];
 				if (rvalid && rready)
 					read_state_next = READ_IDLE;
 			end
@@ -156,7 +160,7 @@ module AXI_lite_slave #(
 	// Read Data Channel
 	assign rvalid = (read_state == READ_DATA);
 	assign rdata = read_data;
-	assign rresp = 2'b00;
+	assign rresp = 0;
 
 endmodule
 

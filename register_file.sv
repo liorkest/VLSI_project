@@ -1,8 +1,8 @@
 
 module register_file #(
 	parameter ADDR_WIDTH = 4,
-	parameter DATA_WIDTH = 32,
-	parameter MEM_SIZE = 16
+	parameter DATA_WIDTH = 16,
+	parameter MEM_SIZE = 32
 )(
 	input  logic        clk,
 	input  logic        resetn,

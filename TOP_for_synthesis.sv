@@ -12,29 +12,43 @@ module TOP_for_synthesis #(
 parameter 		BYTE_DATA_WIDTH = 8,
 parameter 		BLOCK_SIZE = 8,
 parameter 		DATA_WIDTH = 32,
+parameter       AXI_LITE_ADDR_WIDTH  = 4, 
+parameter       AXI_LITE_DATA_SIZE = 16, 
+parameter       AXI_LITE_MEM_SIZE = 32, // 8 bytes * 2
 parameter 		ID_WIDTH = 4,
 parameter 		ADDR_WIDTH = 32,
-parameter 		TOTAL_SAMPLES = 1280*720, // [LK 30.01.25] this is the max value - it is a constant parameter no matter what is the resolution!
 parameter 		SAMPLES_PER_BLOCK = BLOCK_SIZE*BLOCK_SIZE
 ) (	
 	input logic clk,                          // Clock signal
 	input logic rst_n,                        // Active-low reset
 	
-	input logic [15:0] frame_height,          // Frame height
-	input logic [15:0] frame_width,           // Frame width
-	input logic [31:0] blocks_per_frame,      // Number of blocks per frame
-	input logic [31:0] pixels_per_frame,      // Number of pixels per frame
+	// AXI Lite
+	input  wire [AXI_LITE_ADDR_WIDTH-1:0]   AXI_lite_awaddr,
+	input  wire                    AXI_lite_awvalid,
+	output wire                    AXI_lite_awready,
+	input  wire [AXI_LITE_DATA_SIZE-1:0]   AXI_lite_wdata,
+	input  wire  AXI_lite_wstrb,
+	input  wire                    AXI_lite_wvalid,
+	output wire                    AXI_lite_wready,
+	output wire               AXI_lite_bresp,
+	output wire                    AXI_lite_bvalid,
+	input  wire                    AXI_lite_bready,
+	input  wire [AXI_LITE_ADDR_WIDTH-1:0]   AXI_lite_araddr,
+	input  wire                    AXI_lite_arvalid,
+	output wire                    AXI_lite_arready,
+	output wire [AXI_LITE_DATA_SIZE-1:0]   AXI_lite_rdata,
+	output wire              AXI_lite_rresp,
+	output wire                   AXI_lite_rvalid,
+	input  wire                    AXI_lite_rready,
+	
+	// AXI stream in 
+	
 	input logic [DATA_WIDTH-1:0] s_axis_tdata, // Input data stream
 	input logic s_axis_tvalid,                // Valid signal for input stream
 	input logic s_axis_tlast,                 // Last signal for input stream
 	output logic s_axis_tready,                // Ready signal for input stream
 	input logic s_axis_tuser,                 // User signal for input stream
-	output noise_estimation_mean_ready,
-	output logic [2*BYTE_DATA_WIDTH-1:0] estimated_noise, // Estimated noise data
-	output logic estimated_noise_ready,        // Signal indicating noise estimation is ready
-	output logic [31:0] data_count,            // Data count
-	output logic [DATA_WIDTH-1:0] data_out_wiener, // Output data after Wiener filter
-	
+
 	// first output memory buffer for input frames:
 	
 	// Write address channel
@@ -129,11 +143,19 @@ parameter 		SAMPLES_PER_BLOCK = BLOCK_SIZE*BLOCK_SIZE
 	output m_axis_tuser
 );
 
+/****
+ *  AXI Lite
+ */
+ logic [15:0] frame_height;         // Frame height - From AXI LITE
+ logic [15:0] frame_width;           // Frame width  - From AXI LITE
+ logic [31:0] pixels_per_frame;
+ assign pixels_per_frame = frame_height * frame_width;// Number of pixels per frame - calculated from AXI LITE signals
+ logic [31:0] blocks_per_frame;
+ assign blocks_per_frame = pixels_per_frame >> $clog(BLOCK_SIZE*BLOCK_SIZE);      // Number of blocks per frame - calculated from AXI LITE signals
+ 
 
-wire wiener_block_stats_en;
-wire wiener_calc_en;
-wire start_of_frame_wiener;
-wire start_data_wiener;
+
+
 //wire frame_ready_for_wiener;
 
 
@@ -154,7 +176,9 @@ wire start_data_wiener;
 	// noise est
 	logic noise_estimation_en;
 	wire start_data_noise_est;
-
+	logic noise_estimation_mean_ready; 
+	logic [2*BYTE_DATA_WIDTH-1:0] estimated_noise; // Estimated noise data
+	logic estimated_noise_ready;        // Signal indicating noise estimation is ready
 
 	// Control signals
 	logic [ADDR_WIDTH-1:0]   	write_addr;
@@ -166,20 +190,25 @@ wire start_data_wiener;
 
 // WIENER SIGNALS
 
-	//wire frame_ready_for_wiener;
-
+	wire wiener_block_stats_en;
+	wire wiener_calc_en;
+	wire start_of_frame_wiener;
+	wire start_data_wiener;
 	logic start_read_2;
 	logic [ADDR_WIDTH-1:0] read_addr_2;
 	logic [31:0] read_len_2;
 	logic [2:0] read_size_2;
 	logic [1:0] read_burst_2;
 	logic end_of_frame_wiener;
-
+	logic [31:0] data_count;            // Data count - Should be internal
+	logic [DATA_WIDTH-1:0] data_out_wiener; // Output data after Wiener filter
 	logic frame_ready_for_noise_est;
 
 // from wiener to AXI output
+
+
 	logic                    	start_write_wiener;
-	assign start_write_wiener = data_count % BLOCK_SIZE == 0;
+	//assign start_write_wiener = data_count % BLOCK_SIZE == 0;
 	logic [DATA_WIDTH-1:0]      mem2_data_in;
 	assign mem2_data_in = data_out_wiener;
 	
@@ -209,6 +238,67 @@ wire start_data_wiener;
 	logic valid_in;
 	logic last_in;
 	logic user_in;
+
+	/****
+	 *  AXI Lite & register file
+	 */
+	
+	wire [AXI_LITE_ADDR_WIDTH-1:0] AXI_lite_write_addr;
+	wire [AXI_LITE_DATA_SIZE-1:0] AXI_lite_write_data;
+	wire AXI_lite_write_en;
+	wire [AXI_LITE_ADDR_WIDTH-1:0] AXI_lite_read_addr;
+	wire [AXI_LITE_DATA_SIZE-1:0] AXI_lite_read_data;
+AXI_lite_slave #(.ADDR_WIDTH(AXI_LITE_ADDR_WIDTH),
+	  .DATA_WIDTH(16)
+	) dut (
+	  .clk(clk),
+	  .resetn(rst_n),
+	  .awaddr(AXI_lite_awaddr),
+	  .awvalid(AXI_lite_awvalid),
+	  .awready(AXI_lite_awready),
+	  .wdata(AXI_lite_wdata),
+	  .wstrb(AXI_lite_wstrb),
+	  .wvalid(AXI_lite_wvalid),
+	  .wready(AXI_lite_wready),
+	  .bresp(AXI_lite_bresp),
+	  .bvalid(AXI_lite_bvalid),
+	  .bready(AXI_lite_bready),
+	  .araddr(AXI_lite_araddr),
+	  .arvalid(AXI_lite_arvalid),
+	  .arready(AXI_lite_arready),
+	  .rdata(AXI_lite_rdata),
+	  .rresp(AXI_lite_rresp),
+	  .rvalid(AXI_lite_rvalid),
+	  .rready(AXI_lite_rready),
+	  .write_addr(AXI_lite_write_addr),
+	  .write_data(AXI_lite_write_data),
+	  .write_en(AXI_lite_write_en),
+	  .read_addr(AXI_lite_read_addr),
+	  .read_data(AXI_lite_read_data)
+	);
+	
+	// Instantiate the register_file
+register_file #(
+	.ADDR_WIDTH(AXI_LITE_ADDR_WIDTH),
+		.DATA_WIDTH(16),
+		.MEM_SIZE(AXI_LITE_MEM_SIZE)
+	) reg_file (
+	  .clk(clk),
+	  .resetn(rst_n),
+	  .write_addr(AXI_lite_write_addr),
+	  .write_data(AXI_lite_write_data),
+	  .write_en(AXI_lite_write_en),
+	  .read_addr(AXI_lite_read_addr),
+	  .read_data(AXI_lite_read_data),
+	  .res_x(frame_width),
+	  .res_y(frame_height)
+	);
+	
+	
+	/**
+	 * AXI stream in to memory
+	 */
+
 
 memory_writer #(.DATA_WIDTH(DATA_WIDTH)
 	) memory_writer_uut (
@@ -332,7 +422,7 @@ memory_reader_noise_estimation #(.ADDR_WIDTH(ADDR_WIDTH), .DATA_WIDTH(DATA_WIDTH
 	) noise_estimation_dut (
 		.clk(clk & noise_estimation_en), 
 		.rst_n(rst_n),
-		.start_of_frame(start_of_frame), //08.01.25
+		.start_of_frame(start_of_frame), 
 		.data_in(rgb_mean_out),
 		.start_data(start_data_noise_est),  
 		.blocks_per_frame(blocks_per_frame),
@@ -367,11 +457,9 @@ memory_reader_noise_estimation #(.ADDR_WIDTH(ADDR_WIDTH), .DATA_WIDTH(DATA_WIDTH
 		.wiener_calc_en(wiener_calc_en),
 		.start_of_frame(start_of_frame_wiener),
 		.start_data(start_data_wiener),
-		//.frame_ready_for_output_reader(),
-		//.start_write(),
 		.estimated_noise_ready(estimated_noise_ready),
 		.end_of_frame(end_of_frame_wiener),
-		.start_write()
+		.start_write(start_write_wiener)
 	);
 
 AXI_memory_master_burst_read_only #(.ADDR_WIDTH(ADDR_WIDTH),
