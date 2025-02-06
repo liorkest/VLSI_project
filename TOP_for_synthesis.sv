@@ -12,9 +12,9 @@ module TOP_for_synthesis #(
 parameter 		BYTE_DATA_WIDTH = 8,
 parameter 		BLOCK_SIZE = 8,
 parameter 		DATA_WIDTH = 32,
-parameter       AXI_LITE_ADDR_WIDTH  = 4, 
-parameter       AXI_LITE_DATA_SIZE = 16, 
-parameter       AXI_LITE_MEM_SIZE = 32, // 8 bytes * 2
+parameter       AXI_LITE_ADDR_WIDTH  = 1, 
+parameter       AXI_LITE_DATA_WIDTH = 16, // 2*byte width
+parameter       AXI_LITE_MEM_SIZE = 2, 
 parameter 		ID_WIDTH = 4,
 parameter 		ADDR_WIDTH = 32,
 parameter 		SAMPLES_PER_BLOCK = BLOCK_SIZE*BLOCK_SIZE
@@ -22,11 +22,11 @@ parameter 		SAMPLES_PER_BLOCK = BLOCK_SIZE*BLOCK_SIZE
 	input logic clk,                          // Clock signal
 	input logic rst_n,                        // Active-low reset
 	
-	// AXI Lite
+	/**  AXI Lite **/
 	input  wire [AXI_LITE_ADDR_WIDTH-1:0]   AXI_lite_awaddr,
 	input  wire                    AXI_lite_awvalid,
 	output wire                    AXI_lite_awready,
-	input  wire [AXI_LITE_DATA_SIZE-1:0]   AXI_lite_wdata,
+	input  wire [AXI_LITE_DATA_WIDTH-1:0]   AXI_lite_wdata,
 	input  wire  AXI_lite_wstrb,
 	input  wire                    AXI_lite_wvalid,
 	output wire                    AXI_lite_wready,
@@ -36,21 +36,19 @@ parameter 		SAMPLES_PER_BLOCK = BLOCK_SIZE*BLOCK_SIZE
 	input  wire [AXI_LITE_ADDR_WIDTH-1:0]   AXI_lite_araddr,
 	input  wire                    AXI_lite_arvalid,
 	output wire                    AXI_lite_arready,
-	output wire [AXI_LITE_DATA_SIZE-1:0]   AXI_lite_rdata,
+	output wire [AXI_LITE_DATA_WIDTH-1:0]   AXI_lite_rdata,
 	output wire              AXI_lite_rresp,
 	output wire                   AXI_lite_rvalid,
 	input  wire                    AXI_lite_rready,
 	
-	// AXI stream in 
-	
+	/** AXI stream in **/ 
 	input logic [DATA_WIDTH-1:0] s_axis_tdata, // Input data stream
 	input logic s_axis_tvalid,                // Valid signal for input stream
 	input logic s_axis_tlast,                 // Last signal for input stream
 	output logic s_axis_tready,                // Ready signal for input stream
 	input logic s_axis_tuser,                 // User signal for input stream
 
-	// first output memory buffer for input frames:
-	
+	/** first AXI memory buffer for input frames**/
 	// Write address channel
 	output logic [ADDR_WIDTH-1:0]    awaddr,
 	output logic [31:0]               awlen,
@@ -58,17 +56,14 @@ parameter 		SAMPLES_PER_BLOCK = BLOCK_SIZE*BLOCK_SIZE
 	output logic                     awvalid,
 	output logic [1:0] awburst,
 	input                             awready,
-
 	// Write data channel
 	output logic [DATA_WIDTH-1:0]    wdata,
 	output logic                     wvalid,
 	input                             wready,
 	output logic                     wlast,
-
 	// Write response channel
 	input                             bvalid,
 	output logic                     bready,
-
 	// #1 Read address channel
 	output logic [ADDR_WIDTH-1:0]    araddr,
 	output logic [31:0]               arlen,
@@ -76,7 +71,6 @@ parameter 		SAMPLES_PER_BLOCK = BLOCK_SIZE*BLOCK_SIZE
 	output logic   [1:0]                arburst,
 	output logic                     arvalid,
 	input                             arready,
-
 	// #1 Read data channel
 	input  [DATA_WIDTH-1:0]          rdata,
 	input                             rvalid,
@@ -90,16 +84,14 @@ parameter 		SAMPLES_PER_BLOCK = BLOCK_SIZE*BLOCK_SIZE
 	output logic [31:0]               arlen_2,
 	output logic                     arvalid_2,
 	input                             arready_2,
-
 	// #2 Read data channel
 	input  [DATA_WIDTH-1:0]          rdata_2,
 	input                             rvalid_2,
 	output logic                     rready_2,
 	input                             rlast_2,
 	
-	/////// second frames buffer - output frames:
+	/** second AXI memory frames buffer - for output frames **/
 	// AXI memory master signals
-
 	// Write Address Channel
 	output logic [ID_WIDTH-1:0]   mem2_awid,
 	output logic [ADDR_WIDTH-1:0] mem2_awaddr,
@@ -108,18 +100,15 @@ parameter 		SAMPLES_PER_BLOCK = BLOCK_SIZE*BLOCK_SIZE
 	output logic [1:0]            mem2_awburst,
 	output logic                  mem2_awvalid,
 	input  logic                  mem2_awready,
-
 	// Write Data Channel
 	output logic [DATA_WIDTH-1:0]  mem2_wdata,
 	output logic [DATA_WIDTH/8-1:0] mem2_wstrb,
 	output logic                   mem2_wlast,
 	output logic                   mem2_wvalid,
 	input  logic                   mem2_wready,
-
 	// Write Response Channel
 	input  logic                   mem2_bvalid,
 	output logic                   mem2_bready,
-
 	// Read Address Channel
 	output logic [ADDR_WIDTH-1:0] mem2_araddr,
 	output logic [7:0]            mem2_arlen,
@@ -127,7 +116,6 @@ parameter 		SAMPLES_PER_BLOCK = BLOCK_SIZE*BLOCK_SIZE
 	output logic [1:0]            mem2_arburst,
 	output logic                  mem2_arvalid,
 	input  logic                  mem2_arready,
-
 	// Read Data Channel
 	input  logic [DATA_WIDTH-1:0] mem2_rdata,
 	input  logic                  mem2_rlast,
@@ -135,7 +123,7 @@ parameter 		SAMPLES_PER_BLOCK = BLOCK_SIZE*BLOCK_SIZE
 	output logic                  mem2_rready,
 
 	
-	// AXI stream output
+	/** AXI stream output **/
 	output [DATA_WIDTH-1:0] m_axis_tdata,
 	output m_axis_tvalid,
 	input m_axis_tready,
@@ -144,7 +132,7 @@ parameter 		SAMPLES_PER_BLOCK = BLOCK_SIZE*BLOCK_SIZE
 );
 
 /****
- *  AXI Lite
+ *  AXI Lite  & register file
  */
  logic [15:0] frame_height;         // Frame height - From AXI LITE
  logic [15:0] frame_width;           // Frame width  - From AXI LITE
@@ -152,11 +140,11 @@ parameter 		SAMPLES_PER_BLOCK = BLOCK_SIZE*BLOCK_SIZE
  assign pixels_per_frame = frame_height * frame_width;// Number of pixels per frame - calculated from AXI LITE signals
  logic [31:0] blocks_per_frame;
  assign blocks_per_frame = pixels_per_frame >> $clog(BLOCK_SIZE*BLOCK_SIZE);      // Number of blocks per frame - calculated from AXI LITE signals
- 
-
-
-
-//wire frame_ready_for_wiener;
+ wire [AXI_LITE_ADDR_WIDTH-1:0] AXI_lite_write_addr;
+ wire [AXI_LITE_DATA_WIDTH-1:0] AXI_lite_write_data;
+ wire AXI_lite_write_en;
+ wire [AXI_LITE_ADDR_WIDTH-1:0] AXI_lite_read_addr;
+ wire [AXI_LITE_DATA_WIDTH-1:0] AXI_lite_read_data;
 
 
 	logic start_read;
@@ -208,7 +196,6 @@ parameter 		SAMPLES_PER_BLOCK = BLOCK_SIZE*BLOCK_SIZE
 
 
 	logic                    	start_write_wiener;
-	//assign start_write_wiener = data_count % BLOCK_SIZE == 0;
 	logic [DATA_WIDTH-1:0]      mem2_data_in;
 	assign mem2_data_in = data_out_wiener;
 	
@@ -239,17 +226,9 @@ parameter 		SAMPLES_PER_BLOCK = BLOCK_SIZE*BLOCK_SIZE
 	logic last_in;
 	logic user_in;
 
-	/****
-	 *  AXI Lite & register file
-	 */
-	
-	wire [AXI_LITE_ADDR_WIDTH-1:0] AXI_lite_write_addr;
-	wire [AXI_LITE_DATA_SIZE-1:0] AXI_lite_write_data;
-	wire AXI_lite_write_en;
-	wire [AXI_LITE_ADDR_WIDTH-1:0] AXI_lite_read_addr;
-	wire [AXI_LITE_DATA_SIZE-1:0] AXI_lite_read_data;
+
 AXI_lite_slave #(.ADDR_WIDTH(AXI_LITE_ADDR_WIDTH),
-	  .DATA_WIDTH(16)
+	  .DATA_WIDTH(AXI_LITE_DATA_WIDTH)
 	) dut (
 	  .clk(clk),
 	  .resetn(rst_n),
@@ -280,7 +259,7 @@ AXI_lite_slave #(.ADDR_WIDTH(AXI_LITE_ADDR_WIDTH),
 	// Instantiate the register_file
 register_file #(
 	.ADDR_WIDTH(AXI_LITE_ADDR_WIDTH),
-		.DATA_WIDTH(16),
+		.DATA_WIDTH(AXI_LITE_DATA_WIDTH),
 		.MEM_SIZE(AXI_LITE_MEM_SIZE)
 	) reg_file (
 	  .clk(clk),
@@ -296,7 +275,7 @@ register_file #(
 	
 	
 	/**
-	 * AXI stream in to memory
+	 * AXI stream input to memory
 	 */
 
 
@@ -409,7 +388,9 @@ memory_reader_noise_estimation #(.ADDR_WIDTH(ADDR_WIDTH), .DATA_WIDTH(DATA_WIDTH
 	);
 	
 	// RGB mean
-	RGB_mean #(.DATA_WIDTH(BYTE_DATA_WIDTH)) RGB_mean_dut ( 
+	RGB_mean #(
+		.DATA_WIDTH(BYTE_DATA_WIDTH)
+	) RGB_mean_dut ( 
 		.en(1'b1), 
 		.data_in(rdata[23:0]), 
 		.data_out(rgb_mean_out) 
@@ -452,7 +433,6 @@ memory_reader_noise_estimation #(.ADDR_WIDTH(ADDR_WIDTH), .DATA_WIDTH(DATA_WIDTH
 		.read_len(read_len_2),
 		.read_size(read_size_2),
 		.read_burst(read_burst_2),
-
 		.wiener_block_stats_en(wiener_block_stats_en),
 		.wiener_calc_en(wiener_calc_en),
 		.start_of_frame(start_of_frame_wiener),
