@@ -14,7 +14,7 @@ HEIGHT=$2
 
 
 # Define array of images
-image_files=("images_tb/cat_dog_noisy.bmp" "images_tb/fish_noisy.bmp" "images_tb/ferrari_noisy_out.bmp" "images_tb/turtle_noisy.bmp")
+image_files=("images_tb/cat_dog_noisy.bmp" "images_tb/fish_noisy.bmp" "images_tb/ferrari_noisy.bmp" "images_tb/turtle_noisy.bmp")
 
 for i in {0..3}; do
     echo "Processing file: ${image_files[i]}"

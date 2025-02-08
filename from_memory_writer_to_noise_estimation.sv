@@ -264,8 +264,8 @@ logic start_of_frame_noise_estimation;
 		.read_burst(read_burst),
 		.base_addr_out(base_addr_out_noise_est),
 		//.noise_estimation_en(noise_estimation_en),
-		.start_of_frame(start_of_frame),
-		.frame_ready_for_wiener(frame_ready_for_wiener)
+		.start_of_frame(start_of_frame)
+		//.frame_ready_for_wiener(frame_ready_for_wiener)
 	);
 
 	AXI_memory_master_burst #(

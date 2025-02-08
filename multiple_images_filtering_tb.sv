@@ -242,6 +242,12 @@ always @(data_count) begin
 		end
 	end
 
+/// FOR DEBUG - can be deleted on synthesis
+always @(posedge estimated_noise_ready) begin
+	$display("Estimated noise ot this frame: ");
+	$display(estimated_noise);
+end
+
 /**********
  * The simulation
  */
@@ -263,14 +269,6 @@ initial begin
 end
 
 task single_frame_filtering_e2e(input string in_data_file, input string out_data_file);
-	// create output wiener file
-	out_file = $fopen(out_data_file, "w");
-	file_valid = 1;
-	if (out_file == 0) begin
-		file_valid = 0;
-		$display("Error: Could not open file.");
-		$finish;
-	end
 	
 	// Initialize inputs
 	rst_n = 1'b0;
@@ -288,7 +286,17 @@ task single_frame_filtering_e2e(input string in_data_file, input string out_data
 	start_data_wiener = 0;
 	// wiener_en = 0;
 	wiener_block_stats_en = 0; // [10.01.25]
-	wiener_calc_en = 1;		
+	wiener_calc_en = 0;	
+	
+	// create output wiener file
+	out_file = $fopen(out_data_file, "w");
+	file_valid = 1;
+	if (out_file == 0) begin
+		file_valid = 0;
+		$display("Error: Could not open file.");
+		$finish;
+	end
+	
 	// Reset the system
 	#20;
 	rst_n = 1'b1;
