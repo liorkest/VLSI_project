@@ -161,7 +161,7 @@ always_ff @(posedge clk or negedge rst_n) begin
 			if (pixel_x == BLOCK_SIZE - 2) begin
 				if (pixel_y < BLOCK_SIZE - 1) begin
 					addr_holder <= curr_base_addr + col_counter * BLOCK_SIZE + frame_width * row_counter * BLOCK_SIZE + frame_width * (pixel_y+4'd1);
-				end else if (col_counter < (frame_width >> $clog2(BLOCK_SIZE)) - 1) begin
+				end else if (col_counter < (frame_width << $clog2(BLOCK_SIZE)) - 1) begin
 					addr_holder <= curr_base_addr + (col_counter+1) * BLOCK_SIZE + frame_width * row_counter * BLOCK_SIZE;
 				end else begin
 					addr_holder <= curr_base_addr + frame_width * (row_counter+16'd1) * BLOCK_SIZE;

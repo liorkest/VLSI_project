@@ -32,7 +32,7 @@ DW_div_10bit_inst divider (
 	);
 
 
-assign sum = {2'b0, data_in[7:0] + data_in[15:8] + data_in[23:16]};
+assign sum =  data_in[7:0] + data_in[15:8] + data_in[23:16];
 assign a = sum;
 always_comb begin
 	if (en) begin

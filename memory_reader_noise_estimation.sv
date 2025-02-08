@@ -35,7 +35,11 @@ module memory_reader_noise_estimation #(
 );
 
 logic [15:0] row_counter;
+logic [15:0] rows_num;
+assign rows_num = frame_height >> $clog2(BLOCK_SIZE);
 logic [15:0] col_counter;
+logic [15:0]  cols_num;
+assign cols_num = frame_width >> $clog2(BLOCK_SIZE);
 logic [3:0] pixel_x;
 logic [3:0] pixel_y;
 logic [ADDR_WIDTH-1:0] curr_base_addr;
@@ -118,8 +122,8 @@ always_ff @(posedge clk or negedge rst_n) begin
 			start_read_flag <= 1'd0;
 			noise_estimation_en <= 1'd1; // [LS 06.01.25] noise estimation should be enabled only when state is READ
 			
-			if (row_counter < (frame_height >> $clog2(BLOCK_SIZE))) begin
-				if (col_counter < (frame_width >> $clog2(BLOCK_SIZE))) begin
+			if (row_counter < rows_num) begin
+				if (col_counter < cols_num) begin
 					if (pixel_y < BLOCK_SIZE - 1) begin
 						if (pixel_x < BLOCK_SIZE - 1) begin
 							pixel_x <= pixel_x + 4'd1;
@@ -134,12 +138,12 @@ always_ff @(posedge clk or negedge rst_n) begin
 					end else begin
 						pixel_x <= pixel_x + 4'd1;		
 					end
-					if (col_counter == (frame_width >> $clog2(BLOCK_SIZE)) - 1 && pixel_y == BLOCK_SIZE -1 && pixel_x == BLOCK_SIZE - 1) begin
+					if (col_counter == cols_num - 1 && pixel_y == BLOCK_SIZE -1 && pixel_x == BLOCK_SIZE - 1) begin
 						col_counter <= 16'd0;
 						row_counter <= row_counter + 16'd1;
 					end
 				end 
-				if (row_counter == (frame_height >> $clog2(BLOCK_SIZE)) - 1 && col_counter == (frame_width >> $clog2(BLOCK_SIZE)) - 1 
+				if (row_counter == rows_num - 1 && col_counter == cols_num - 1 
 						&& pixel_y == BLOCK_SIZE -1 && pixel_x == BLOCK_SIZE - 1) begin
 					col_counter <= 16'd0;
 					row_counter <= 16'd0;
@@ -148,13 +152,11 @@ always_ff @(posedge clk or negedge rst_n) begin
 			// -> [LS 06.01.25] because of the multiplication, need to calculate new address one cycle before update 
 			if (pixel_x == BLOCK_SIZE - 2) begin
 				if (pixel_y < BLOCK_SIZE - 1) begin
-					addr_holder <= (curr_base_addr + col_counter) >> $clog2(BLOCK_SIZE) +
-									(frame_width * row_counter)>> $clog2(BLOCK_SIZE) + 
-										frame_width * (pixel_y+4'd1);
+					addr_holder <= curr_base_addr + col_counter * BLOCK_SIZE + frame_width * row_counter * BLOCK_SIZE + frame_width * (pixel_y+1);
 				end else if (col_counter < (frame_width >> $clog2(BLOCK_SIZE)) - 1) begin
-					addr_holder <= curr_base_addr + (col_counter+16'd1) * BLOCK_SIZE +( frame_width * row_counter) >> $clog2(BLOCK_SIZE);
+					addr_holder <= curr_base_addr + (col_counter+1) * BLOCK_SIZE + frame_width * row_counter * BLOCK_SIZE;
 				end else begin
-					addr_holder <= curr_base_addr + (frame_width * (row_counter+16'd1)) >> $clog2(BLOCK_SIZE);
+					addr_holder <= curr_base_addr + frame_width * (row_counter+1) * BLOCK_SIZE;
 				end
 			end
 
@@ -205,8 +207,8 @@ always_comb begin
 		end
 		
 		READ: begin
-			if (rlast && (pixel_x == BLOCK_SIZE-1) && (pixel_y == BLOCK_SIZE-1) && (row_counter == (frame_height >> $clog2(BLOCK_SIZE))-1) 
-					&& (col_counter == (frame_width >> $clog2(BLOCK_SIZE))-1)) begin
+			if (rlast && (pixel_x == BLOCK_SIZE-1) && (pixel_y == BLOCK_SIZE-1) && (row_counter == rows_num -1) 
+					&& (col_counter == cols_num-1)) begin
 				next_state = FRAME_READY;
 			end else if (rlast) begin
 				next_state = READ_HANDSHAKE;
