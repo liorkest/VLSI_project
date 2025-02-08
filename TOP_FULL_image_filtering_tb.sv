@@ -13,12 +13,11 @@ module TOP_FULL_image_filtering_tb #(
 parameter 		BYTE_DATA_WIDTH = 8,
 parameter 		BLOCK_SIZE = 8,
 parameter 		DATA_WIDTH = 32,
-parameter 		ID_WIDTH = 4,
 parameter 		ADDR_WIDTH = 32,
-parameter 		IN_IMG = "hex_data_in.hex",
+parameter string		IN_IMG = "hex_data_in.hex",
 parameter 		WIDTH = 1280,
 parameter 		HEIGHT = 720,
-parameter 		OUT_IMG = "hex_data_out.hex"
+parameter string		OUT_IMG = "hex_data_out.hex"
 ) ();
 
 parameter 		SAMPLES_PER_BLOCK = BLOCK_SIZE*BLOCK_SIZE;// total number of pixels in frame
@@ -43,7 +42,7 @@ logic rlast;
 logic noise_estimation_en;
 logic start_data_noise_est;
 logic start_of_frame_noise_estimation;
-logic [2*BYTE_DATA_WIDTH-1:0] estimated_noise;
+logic [4*BYTE_DATA_WIDTH-1:0] estimated_noise;
 logic estimated_noise_ready;
 logic start_of_frame_wiener;
 logic frame_ready_for_noise_est;
@@ -82,7 +81,6 @@ logic rvalid_2;
 logic rready_2;
 
 // Write Address Channel
-logic [ID_WIDTH-1:0] awid;
 logic [ADDR_WIDTH-1:0] awaddr;
 logic [7:0] awlen;
 logic [2:0] awsize;
@@ -98,7 +96,6 @@ logic wvalid;
 logic wready;
 
 // Write Response Channel
-logic [ID_WIDTH-1:0] bid;
 logic [1:0] bresp;
 logic bvalid;
 logic bready;
@@ -188,7 +185,6 @@ TOP_AXI_stream_memory_noise_estimation_wiener_NO_AXI_mem_slave #(
 AXI_memory_slave_3channels #(
 	.ADDR_WIDTH(ADDR_WIDTH),
 	.DATA_WIDTH(DATA_WIDTH),
-	.ID_WIDTH(ID_WIDTH),
 	.MEM_SIZE(TOTAL_SAMPLES),
 	.INIT_OPTION(0)
   ) AXI_memory_slave_uut (
@@ -231,7 +227,12 @@ AXI_memory_slave_3channels #(
 		forever #5 clk = ~clk; // 100MHz clock
 	end
 	
-	int frames_num = 1;	
+
+	/// FOR DEBUG - can be deleted on synthesis
+	always @(posedge estimated_noise_ready) begin
+		$display("Estimated noise: ");
+		$display(estimated_noise);
+	end
 
 /***********
  * This module writes the Wiener output into hex file
@@ -280,7 +281,6 @@ AXI_memory_slave_3channels #(
 	
 		#10;
 		// Send AXI stream
-		for(int frame=0; frame < frames_num; frame++) begin
 			send_image_data(IN_IMG);
 			// End transaction
 			@(negedge clk);
@@ -290,7 +290,7 @@ AXI_memory_slave_3channels #(
 			@(posedge clk);
 			#1;
 			s_axis_tlast = 1'b0;
-		end
+
 				
 		// frame is ready in memory - begin noise estimation
 		wait(frame_ready_for_noise_est)	;
@@ -310,10 +310,12 @@ AXI_memory_slave_3channels #(
 				// #85;  // option 1
 				wait(rlast); // option 2
 				#15;
-				if(j==BLOCK_SIZE-1) #10; // for mean calculation - last cycle
+				if(j==BLOCK_SIZE-1) begin
+					#10; // for mean calculation - last cycle
+				end
 					
 				
-				if(j!=BLOCK_SIZE-1) begin
+				if (j!=BLOCK_SIZE-1) begin
 					noise_estimation_en = 0;
 					#45;
 				end else if (j==BLOCK_SIZE-1) begin

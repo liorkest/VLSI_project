@@ -52,9 +52,9 @@ AXI_stream_slave #(
 	.rst_n(rst_n),
 	.s_axis_tdata(s_axis_tdata),
 	.s_axis_tvalid(s_axis_tvalid),
-	.s_axis_tready(s_axis_tready_logic)
+	.s_axis_tready(s_axis_tready_logic),
 	//.s_axis_tlast(s_axis_tlast),
-	//.s_axis_tuser(s_axis_tuser)
+	.s_axis_tuser(s_axis_tuser)
 );
 
 // Instantiate the shift register [LK 01.01.25]

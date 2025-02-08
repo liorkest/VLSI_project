@@ -35,7 +35,7 @@ parameter 		SAMPLES_PER_BLOCK = 64// total number of pixels in frame
 	input logic noise_estimation_en,          // Enable signal for noise estimation
 	input logic start_data_noise_est,         // Start signal for data noise estimation
 	input logic start_of_frame_noise_estimation, // Start of frame signal for noise estimation
-	output logic [2*BYTE_DATA_WIDTH-1:0] estimated_noise, // Estimated noise data
+	output logic [4*BYTE_DATA_WIDTH-1:0] estimated_noise, // Estimated noise data
 	output logic estimated_noise_ready,        // Signal indicating noise estimation is ready
 	input logic start_of_frame_wiener,        // Start of frame signal for Wiener filter
 	output logic frame_ready_for_noise_est,    // Frame ready signal for noise estimation
@@ -361,6 +361,7 @@ logic [7:0] rgb_mean_out;
 	 ); 
 	
 	// DUT instantiation
+	wire mean_ready;
 	noise_estimation #(
 		.DATA_WIDTH(BYTE_DATA_WIDTH),
 		.TOTAL_SAMPLES(BLOCK_SIZE*BLOCK_SIZE) // Total number of pixels per frame (MUST be power of 2)
@@ -372,7 +373,8 @@ logic [7:0] rgb_mean_out;
 		.start_data(start_data_noise_est),  
 		.blocks_per_frame(blocks_per_frame),
 		.estimated_noise(estimated_noise),
-		.estimated_noise_ready(estimated_noise_ready)
+		.estimated_noise_ready(estimated_noise_ready),
+		.mean_ready(mean_ready)
 	);
 
 

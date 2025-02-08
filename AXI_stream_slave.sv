@@ -17,9 +17,9 @@ module AXI_stream_slave #(
 	// AXI Stream slave interface
 	input  logic [DATA_WIDTH-1:0]      s_axis_tdata, // Data signal
 	input  logic                       s_axis_tvalid,// Valid signal
-	output logic                      s_axis_tready// Ready signal           
+	output logic                      s_axis_tready,// Ready signal           
 	//input  logic                       s_axis_tlast, // Last signal - end of line // [LS 31.01.25] - only used by memory_writer
-	//input  logic                       s_axis_tuser // User custom signal - start of frame // [LS 31.01.25] - only used by memory_writer
+	input  logic                       s_axis_tuser // User custom signal - start of frame // [LS 31.01.25] - only used by memory_writer
 	// input  logic [TID_WIDTH-1:0]       s_axis_tid,   // ID signal
 	// input  logic [TDEST_WIDTH-1:0]     s_axis_tdest  // Destination signal
 	);

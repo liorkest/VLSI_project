@@ -234,9 +234,10 @@ end
  * This module writes the Wiener output into hex file
  */
 integer out_file;
+logic file_valid;
 always @(data_count) begin
 		// Write the 32-bit data_out to the file whenever trigger_signal changes
-		if(data_count<=64 && data_count > 0) begin // if not end of block
+		if(file_valid && data_count<=64 && data_count > 0) begin // if not end of block
 			$fwrite(out_file, "%h\n", data_out_wiener[23:0]);
 		end
 	end
@@ -248,7 +249,9 @@ int i;
 string file_name_in;
 string file_name_out;
 
+
 initial begin
+	file_valid = 0;
 	for (i = 0; i < FRAMES_NUM; i++) begin
 		// files format example: image0_noisy_in.hex
 		file_name_in = $sformatf("image%0d_noisy_in.hex", i);
@@ -262,7 +265,9 @@ end
 task single_frame_filtering_e2e(input string in_data_file, input string out_data_file);
 	// create output wiener file
 	out_file = $fopen(out_data_file, "w");
+	file_valid = 1;
 	if (out_file == 0) begin
+		file_valid = 0;
 		$display("Error: Could not open file.");
 		$finish;
 	end
@@ -373,24 +378,25 @@ task single_frame_filtering_e2e(input string in_data_file, input string out_data
 	end
 	
 	#100;
+	file_valid = 0;
 	$fclose(out_file); 
 endtask
 
 // Send image data via AXI Stream 
 task send_image_data(input string filename); 
-   integer file, status, r, g, b; 
+   integer img_in, status, r, g, b; 
    begin 
-	   file = $fopen(filename, "r"); 
-	   if (file == 0) begin 
+	   img_in = $fopen(filename, "r"); 
+	   if (img_in == 0) begin 
 		   $display("Failed to open image data file."); 
 		   $stop; 
 	   end 
-	   for(int i=0; i < pixels_per_frame && !$feof(file); i++) begin 
-		   status = $fscanf(file, "%2h%2h%2h\n", r, g, b); 
+	   for(int i=0; i < pixels_per_frame && !$feof(img_in); i++) begin 
+		   status = $fscanf(img_in, "%2h%2h%2h\n", r, g, b); 
 		   //$display("Pixel %0d: Red=%0h, Green=%0h, Blue=%0h", i, r, g, b);
 		   send_transaction({8'b0, r[7:0], g[7:0], b[7:0]}, (i%frame_width == frame_width-1) ,i==0); 
 	   end
-	   $fclose(file); 
+	   $fclose(img_in); 
    end 
 endtask 
 
