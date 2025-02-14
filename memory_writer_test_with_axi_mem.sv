@@ -115,14 +115,12 @@ module memory_writer_with_axi_mem_tb;
 	
 	AXI_memory_master_burst #(
 		.ADDR_WIDTH(ADDR_WIDTH),
-		.DATA_WIDTH(DATA_WIDTH),
-		.ID_WIDTH(ID_WIDTH)
+		.DATA_WIDTH(DATA_WIDTH)
 	) dut (
 		.clk(clk),
 		.resetn(rst_n),
 		
 		// Write Address Channel
-		.awid(awid),
 		.awaddr(awaddr),
 		.awlen(awlen),
 		.awsize(awsize),

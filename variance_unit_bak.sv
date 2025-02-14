@@ -34,7 +34,8 @@ module variance_unit #(
 			// Variance calculation: (data_in - mean_in)^2
 			diff <= data_in - mean_in; // Difference
 			diff_square <= diff * diff; // Square of difference
-		end else if (start_data_in) begin
+		end 
+		if (start_data_in) begin
 			diff_square <= 0;
 		end
 	end

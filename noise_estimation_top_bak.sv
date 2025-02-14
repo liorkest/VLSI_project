@@ -39,8 +39,6 @@ logic shift_en, noise_mean_en, shift_reg_rst_n, variance_start_of_data, variance
 logic [2*DATA_WIDTH-1:0]  block_mean;
 logic [DATA_WIDTH-1:0] serial_out;
 logic [2*DATA_WIDTH-1:0] variance_of_block;
-logic [31:0] mean_out;
-assign estimated_noise = mean_out[2*DATA_WIDTH-1:0];
 
 // FSM
 wire start_data_mean2;
@@ -112,7 +110,7 @@ mean_unit #(
 	.data_in(variance_of_block),
 	.start_data_in(start_data_mean2),
 	.en(noise_mean_en),
-	.mean_out(mean_out),
+	.mean_out(estimated_noise),
 	.ready(estimated_noise_ready)
 );
 

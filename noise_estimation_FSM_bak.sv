@@ -91,14 +91,14 @@ end
 
 // Data processing logic
 always_ff @(posedge clk or negedge rst_n) begin
+	variance_start_of_data <= 0;
+	noise_mean_en <= 0;
 	if (!rst_n) begin
 		count<= 0;
 		block_count <= 0;
 		updated_block_count <= 0;
 		mean_ready_counter <= 0;
 		start_data_mean2 <= 0;
-		variance_start_of_data <= 0;
-		noise_mean_en <= 0;
 	end else begin
 		if (state == IDLE) begin
 			count <= 0;

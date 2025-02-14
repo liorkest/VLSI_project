@@ -9,15 +9,13 @@
 module AXI_memory_master_burst #
 (
 	parameter ADDR_WIDTH = 32,
-	parameter DATA_WIDTH = 32,
-	parameter ID_WIDTH = 4
+	parameter DATA_WIDTH = 32
 )
 (
 	input  logic                    clk,
 	input  logic                    resetn,
 
 	// Write Address Channel
-	output logic [ID_WIDTH-1:0]     awid,
 	output logic [ADDR_WIDTH-1:0]   awaddr,
 	output logic [7:0]              awlen,
 	output logic [2:0]              awsize,

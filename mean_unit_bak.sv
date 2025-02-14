@@ -11,7 +11,7 @@ module mean_unit #(
 )(
 	input  logic                   clk,
 	input  logic                   rst_n,
-	input logic  [31:0]            total_samples,//[06.12.24]
+	input logic  [31:0]                    total_samples,//[06.12.24]
 	input  logic [DATA_WIDTH-1:0]  data_in,   // 8-bit input data
 	input  logic                   start_data_in,
 	input  logic                   en,
@@ -22,19 +22,6 @@ module mean_unit #(
 	// Internal signals
 	logic [31:0] count;
 	logic [31:0] sum;
-	
-	// divider inst
-	logic [31:0] quotient; // result of 16.0 / 16.0 fixed point division = 16.16 format
-	logic [31:0] remainder;
-	logic divide_by_0;
-	DW_div_32bit_inst divider (	
-		.a          (sum),
-		.b          (total_samples),
-		.quotient   (quotient   ),
-		.remainder  (remainder  ),
-		.divide_by_0(divide_by_0)
-	);
-	
 
 	always_ff @(posedge clk or negedge rst_n) begin
 		if (!rst_n) begin
@@ -42,10 +29,6 @@ module mean_unit #(
 			count <= 0;
 			mean_out <= {2*DATA_WIDTH{1'd0}};
 			ready <=1'd0;
-		end else if (start_data_in) begin
-			count <= 0;
-			sum <= 0;
-			ready <= 1'd0;
 		end else if (count < total_samples && !start_data_in && !ready)  begin
 			if (en) begin
 					sum <= sum + data_in;
@@ -55,10 +38,15 @@ module mean_unit #(
 			sum <= 0;
 			count <= 0;
 			ready <= 1'd1;
-			mean_out <= quotient;
+			mean_out <= sum >> $clog2(total_samples);
 		end
 		
-		
+		if (start_data_in) begin
+				count <= 0;
+				sum <= 0;
+				ready <= 1'd0;
+				//mean_out <= 0; [05.12.24]
+		end
 
 	end
 	

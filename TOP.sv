@@ -1,22 +1,21 @@
 /*------------------------------------------------------------------------------
- * File          : TOP_for_synthesis.sv
+ * File          : TOP.sv
  * Project       : RTL
  * Author        : eplkls
  * Creation date : Jan 31, 2025
  * Description   :
  *------------------------------------------------------------------------------*/
 
-module TOP_for_synthesis #(
+module TOP #(
 // Parameters
 // all parameters are constant for any simulation
 parameter 		BYTE_DATA_WIDTH = 8,
 parameter 		BLOCK_SIZE = 8,
 parameter 		DATA_WIDTH = 32,
-parameter       AXI_LITE_ADDR_WIDTH  = 1, 
+parameter 		ADDR_WIDTH = 32,
+parameter       AXI_LITE_ADDR_WIDTH = 1, 
 parameter       AXI_LITE_DATA_WIDTH = 16, // 2*byte width
 parameter       AXI_LITE_MEM_SIZE = 2, 
-parameter 		ID_WIDTH = 4,
-parameter 		ADDR_WIDTH = 32,
 parameter 		SAMPLES_PER_BLOCK = BLOCK_SIZE*BLOCK_SIZE
 ) (	
 	input logic clk,                          // Clock signal
@@ -93,7 +92,6 @@ parameter 		SAMPLES_PER_BLOCK = BLOCK_SIZE*BLOCK_SIZE
 	/** second AXI memory frames buffer - for output frames **/
 	// AXI memory master signals
 	// Write Address Channel
-	output logic [ID_WIDTH-1:0]   mem2_awid,
 	output logic [ADDR_WIDTH-1:0] mem2_awaddr,
 	output logic [7:0]            mem2_awlen,
 	output logic [2:0]            mem2_awsize,
@@ -139,7 +137,7 @@ parameter 		SAMPLES_PER_BLOCK = BLOCK_SIZE*BLOCK_SIZE
  logic [31:0] pixels_per_frame;
  assign pixels_per_frame = frame_height * frame_width;// Number of pixels per frame - calculated from AXI LITE signals
  logic [31:0] blocks_per_frame;
- assign blocks_per_frame = pixels_per_frame >> $clog(BLOCK_SIZE*BLOCK_SIZE);      // Number of blocks per frame - calculated from AXI LITE signals
+ assign blocks_per_frame = pixels_per_frame >> $clog2(BLOCK_SIZE*BLOCK_SIZE);      // Number of blocks per frame - calculated from AXI LITE signals
  wire [AXI_LITE_ADDR_WIDTH-1:0] AXI_lite_write_addr;
  wire [AXI_LITE_DATA_WIDTH-1:0] AXI_lite_write_data;
  wire AXI_lite_write_en;
@@ -302,9 +300,9 @@ memory_writer #(.DATA_WIDTH(DATA_WIDTH)
 		
 	);
 	
-AXI_memory_master_burst_write_only #(.ADDR_WIDTH(ADDR_WIDTH),
-		.DATA_WIDTH(DATA_WIDTH),
-		.ID_WIDTH(ID_WIDTH)
+AXI_memory_master_burst_write_only #(
+		.ADDR_WIDTH(ADDR_WIDTH),
+		.DATA_WIDTH(DATA_WIDTH)
 	) AXI_memory_master_burst_write_only (
 		.clk(clk),
 		.resetn(rst_n),
@@ -565,14 +563,12 @@ wiener_3_channels #(.DATA_WIDTH(DATA_WIDTH),
 	
 	AXI_memory_master_burst #(
 		.ADDR_WIDTH(ADDR_WIDTH),
-		.DATA_WIDTH(DATA_WIDTH),
-		.ID_WIDTH(ID_WIDTH)
+		.DATA_WIDTH(DATA_WIDTH)
 	) AXI_memory_master_burst_uut (
 		.clk(clk),
 		.resetn(rst_n),
 		
 		// Write Address Channel
-		.awid(mem2_awid),
 		.awaddr(mem2_awaddr),
 		.awlen(mem2_awlen),
 		.awsize(mem2_awsize),

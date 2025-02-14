@@ -64,7 +64,7 @@ mean_unit #(
 	.total_samples(TOTAL_SAMPLES), // Total number of samples per block (MUST be power of 2)
 	.data_in(data_in),
 	.start_data_in(start_data),
-	.en(1),                        // entered constant [05.12.24] LK
+	.en(1'b1),                        // entered constant [05.12.24] LK
 	.mean_out(block_mean),
 	.ready(mean_ready)
 );

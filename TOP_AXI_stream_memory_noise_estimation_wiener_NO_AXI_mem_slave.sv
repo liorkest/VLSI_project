@@ -214,14 +214,12 @@ logic [7:0] rgb_mean_out;
 	
 	AXI_memory_master_burst #(
 		.ADDR_WIDTH(ADDR_WIDTH),
-		.DATA_WIDTH(DATA_WIDTH),
-		.ID_WIDTH(ID_WIDTH)
+		.DATA_WIDTH(DATA_WIDTH)
 	) AXI_memory_master_burst_write (
 		.clk(clk),
 		.resetn(rst_n),
 		
 		// Write Address Channel
-		.awid(awid),
 		.awaddr(awaddr),
 		.awlen(awlen),
 		.awsize(awsize),

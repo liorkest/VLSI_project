@@ -113,8 +113,8 @@ end
 
 // Data processing logic
 always_ff @(posedge clk or negedge rst_n) begin
-	variance_start_of_data <= 0;
 	if (!rst_n) begin
+		variance_start_of_data <= 0;
 		count<= 0;
 		block_count <= 0;
 		updated_block_count <= 0;

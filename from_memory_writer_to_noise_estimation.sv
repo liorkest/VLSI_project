@@ -137,14 +137,12 @@ logic start_of_frame_noise_estimation;
 	
 	AXI_memory_master_burst #(
 		.ADDR_WIDTH(ADDR_WIDTH),
-		.DATA_WIDTH(DATA_WIDTH),
-		.ID_WIDTH(ID_WIDTH)
+		.DATA_WIDTH(DATA_WIDTH)
 	) AXI_memory_master_burst_uut (
 		.clk(clk),
 		.resetn(rst_n),
 		
 		// Write Address Channel
-		.awid(awid),
 		.awaddr(awaddr),
 		.awlen(awlen),
 		.awsize(awsize),

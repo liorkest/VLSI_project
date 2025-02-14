@@ -77,14 +77,12 @@ reg [1:0] read_burst;
 // Instantiate the DUT (Device Under Test)
 AXI_memory_master_burst #(
 	.ADDR_WIDTH(ADDR_WIDTH),
-	.DATA_WIDTH(DATA_WIDTH),
-	.ID_WIDTH(ID_WIDTH)
+	.DATA_WIDTH(DATA_WIDTH)
 ) dut (
 	.clk(clk),
 	.resetn(resetn),
 
 	// Write Address Channel
-	.awid(awid),
 	.awaddr(awaddr),
 	.awlen(awlen),
 	.awsize(awsize),
