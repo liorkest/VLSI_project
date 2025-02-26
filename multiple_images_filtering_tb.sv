@@ -7,7 +7,6 @@
  *------------------------------------------------------------------------------*/
 
 
-
 module multiple_images_filtering_tb #(
 // Parameters of TB
 parameter 		BYTE_DATA_WIDTH = 8,
@@ -265,6 +264,9 @@ initial begin
 		$display("Filtering file: %s", file_name_in);
 		single_frame_filtering_e2e(file_name_in, file_name_out);
 	end
+	$display("Simulation time: %t", $time);
+	$display("Clock cycles: %0d", $time / 10);
+	$printtimescale;
 	$finish;
 end
 
@@ -304,7 +306,10 @@ task single_frame_filtering_e2e(input string in_data_file, input string out_data
 
 	#10;
 	// Send AXI stream
+	$display("Simulation time before send_image_data: %t", $time);
 	send_image_data(in_data_file);
+	$display("Simulation time after send_image_data: %t", $time);
+
 	// End transaction
 	@(negedge clk);
 	s_axis_tuser = 1'b0;
@@ -316,6 +321,7 @@ task single_frame_filtering_e2e(input string in_data_file, input string out_data
 			
 	// frame is ready in memory - begin noise estimation
 	wait(frame_ready_for_noise_est)	;
+
 	#10; // wait 1 cycle till frame_ready_for_noise_est = 0
 	#30;
 	noise_estimation_en = 1;
@@ -345,7 +351,8 @@ task single_frame_filtering_e2e(input string in_data_file, input string out_data
 		end
 	end
 	wait(estimated_noise_ready);
-	
+	$display("Simulation time after Noise est: %t", $time);
+
 	#10;
 	#5;
 	#30;
@@ -386,6 +393,8 @@ task single_frame_filtering_e2e(input string in_data_file, input string out_data
 	end
 	
 	#100;
+	$display("Simulation time after Wiener est: %t", $time);
+
 	file_valid = 0;
 	$fclose(out_file); 
 endtask

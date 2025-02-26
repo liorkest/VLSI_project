@@ -227,7 +227,7 @@ parameter 		SAMPLES_PER_BLOCK = BLOCK_SIZE*BLOCK_SIZE
 
 AXI_lite_slave #(.ADDR_WIDTH(AXI_LITE_ADDR_WIDTH),
 	  .DATA_WIDTH(AXI_LITE_DATA_WIDTH)
-	) dut (
+	) AXI_lite_slave (
 	  .clk(clk),
 	  .resetn(rst_n),
 	  .awaddr(AXI_lite_awaddr),
@@ -278,7 +278,7 @@ register_file #(
 
 
 memory_writer #(.DATA_WIDTH(DATA_WIDTH)
-	) memory_writer_uut (
+	) memory_writer (
 		.clk(clk),
 		.rst_n(rst_n),
 		.s_axis_tdata(s_axis_tdata),
@@ -335,7 +335,7 @@ AXI_memory_master_burst_write_only #(
 	);
 
 memory_reader_noise_estimation #(.ADDR_WIDTH(ADDR_WIDTH), .DATA_WIDTH(DATA_WIDTH), .BLOCK_SIZE(BLOCK_SIZE)
-	) memory_reader_noise_estimation_dut (
+	) memory_reader_noise_estimation (
 		.clk(clk),
 		.rst_n(rst_n),
 		.frame_height(frame_height),
@@ -388,7 +388,7 @@ memory_reader_noise_estimation #(.ADDR_WIDTH(ADDR_WIDTH), .DATA_WIDTH(DATA_WIDTH
 	// RGB mean
 	RGB_mean #(
 		.DATA_WIDTH(BYTE_DATA_WIDTH)
-	) RGB_mean_dut ( 
+	) RGB_mean ( 
 		.en(1'b1), 
 		.data_in(rdata[23:0]), 
 		.data_out(rgb_mean_out) 
@@ -398,7 +398,7 @@ memory_reader_noise_estimation #(.ADDR_WIDTH(ADDR_WIDTH), .DATA_WIDTH(DATA_WIDTH
 	noise_estimation #(
 		.DATA_WIDTH(BYTE_DATA_WIDTH),
 		.TOTAL_SAMPLES(SAMPLES_PER_BLOCK) // Total number of pixels per frame (MUST be power of 2)
-	) noise_estimation_dut (
+	) noise_estimation (
 		.clk(clk & noise_estimation_en), 
 		.rst_n(rst_n),
 		.start_of_frame(start_of_frame), 
@@ -417,7 +417,7 @@ memory_reader_noise_estimation #(.ADDR_WIDTH(ADDR_WIDTH), .DATA_WIDTH(DATA_WIDTH
 		.ADDR_WIDTH(ADDR_WIDTH),
 		.DATA_WIDTH(DATA_WIDTH),
 		.BLOCK_SIZE(BLOCK_SIZE)
-	) memory_reader_wiener_dut (
+	) memory_reader_wiener (
 		.clk(clk),
 		.rst_n(rst_n),
 		.frame_height(frame_height),
@@ -472,7 +472,7 @@ AXI_memory_master_burst_read_only #(.ADDR_WIDTH(ADDR_WIDTH),
 
 wiener_3_channels #(.DATA_WIDTH(DATA_WIDTH), 
 		.TOTAL_SAMPLES(SAMPLES_PER_BLOCK) 
-	  ) wiener_3_channels_dut ( 
+	  ) wiener_3_channels ( 
 		.clk(clk),
 		.wiener_block_stats_en(wiener_block_stats_en),
 		.wiener_calc_en(wiener_calc_en),
@@ -496,7 +496,7 @@ wiener_3_channels #(.DATA_WIDTH(DATA_WIDTH),
 		.DATA_WIDTH(DATA_WIDTH),
 		.ADDR_WIDTH(ADDR_WIDTH),
 		.BLOCK_SIZE(BLOCK_SIZE)
-	) memory_writer_output_uut (
+	) memory_writer_output (
 		.clk(clk),
 		.rst_n(rst_n),
 		.pixels_per_frame(pixels_per_frame),
@@ -520,7 +520,7 @@ wiener_3_channels #(.DATA_WIDTH(DATA_WIDTH),
 	memory_reader_output #(
 		.DATA_WIDTH(DATA_WIDTH),
 		.ADDR_WIDTH(ADDR_WIDTH)
-	) memory_reader_output_uut (
+	) memory_reader_output (
 		.clk(clk),
 		.rst_n(rst_n),
 		.frame_height(frame_height),
@@ -546,7 +546,7 @@ wiener_3_channels #(.DATA_WIDTH(DATA_WIDTH),
 	// AXI Stream Master
 	AXI_stream_master #(
 		.DATA_WIDTH(DATA_WIDTH)
-	) axi_stream_master (
+	) AXI_stream_master (
 		.clk(clk),
 		.rst_n(rst_n),
 		.m_axis_tdata(m_axis_tdata),
@@ -564,7 +564,7 @@ wiener_3_channels #(.DATA_WIDTH(DATA_WIDTH),
 	AXI_memory_master_burst #(
 		.ADDR_WIDTH(ADDR_WIDTH),
 		.DATA_WIDTH(DATA_WIDTH)
-	) AXI_memory_master_burst_uut (
+	) AXI_memory_master_burst(
 		.clk(clk),
 		.resetn(rst_n),
 		

@@ -47,7 +47,7 @@ assign s_axis_tready = s_axis_tready_logic;
 // Instantiate the AXI_stream_slave module
 AXI_stream_slave #(
 	.DATA_WIDTH(DATA_WIDTH)
-) uut (
+) AXI_stream_slave (
 	.clk(clk),
 	.rst_n(rst_n),
 	.s_axis_tdata(s_axis_tdata),
