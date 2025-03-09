@@ -189,7 +189,7 @@ module AXI_memory_master_test2;
 		#20;
 		// Read Transaction
 		AXI_memory_master_read(0);
-		#50;
+		#20;
 		// Finish simulation
 		$finish;
 	end

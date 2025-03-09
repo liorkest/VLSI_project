@@ -1,8 +1,8 @@
 /*------------------------------------------------------------------------------
- * File          : memory_reader_noise_estimation_with_axi_mem_slave&mastertb.sv.sv
+ * File          : memory_reader_noise_estimation_with_axi_mem_slave_master_tb.sv
  * Project       : RTL
  * Author        : eplkls
- * Creation date : Jan 6, 2025
+ * Creation date : Jan 16, 2025
  * Description   :
  *------------------------------------------------------------------------------*/
 module memory_reader_noise_estimation_with_axi_mem_slave_master_tb;
@@ -61,7 +61,6 @@ module memory_reader_noise_estimation_with_axi_mem_slave_master_tb;
 		.frame_width(frame_width),
 		.frame_ready(frame_ready),
 		.rvalid(rvalid),
-		//.arready(arready),
 		.rlast(rlast),
 		.start_read(start_read),
 		.read_addr(read_addr),
@@ -71,7 +70,6 @@ module memory_reader_noise_estimation_with_axi_mem_slave_master_tb;
 		.base_addr_out(base_addr_out),
 		.noise_estimation_en(noise_estimation_en),
 		.start_of_frame(start_of_frame)
-		//.frame_ready_for_wiener(frame_ready_for_wiener)
 	);
 
 	AXI_memory_master_burst #(
@@ -90,9 +88,6 @@ module memory_reader_noise_estimation_with_axi_mem_slave_master_tb;
 		.arready(arready),
 		
 		// Read Data Channel
-		//.rid(rid),
-		//.rdata(rdata),
-		//.rresp(rresp),
 		.rlast(rlast),
 		.rvalid(rvalid),
 		.rready(rready),

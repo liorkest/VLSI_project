@@ -138,25 +138,6 @@ module memory_writer_output_test_with_axi_mem_slave;
 		.bvalid(bvalid),
 		.bready(bready),
 		
-		/* [commented by LK 01.12.25]
-		// Read Address Channel
-		.arid(arid),
-		.araddr(araddr),
-		.arlen(arlen),
-		.arsize(arsize),
-		.arburst(arburst),
-		.arvalid(arvalid),
-		.arready(arready),
-		
-		// Read Data Channel
-		.rid(rid),
-		.rdata(rdata),
-		.rresp(rresp),
-		.rlast(rlast),
-		.rvalid(rvalid),
-		.rready(rready),
-		*/
-		
 		// Control signals
 		.start_write(start_write),
 		.write_addr(write_addr),
@@ -166,13 +147,6 @@ module memory_writer_output_test_with_axi_mem_slave;
 		.write_data(write_data),
 		.write_strb(write_strb),
 		.start_read(start_read)
-		/* [commented by LK 01.12.25]
-		, .read_id(read_id),
-		.read_addr(read_addr),
-		.read_len(read_len),
-		.read_size(read_size),
-		.read_burst(read_burst)
-		*/
 	);
 	
 	AXI_memory_slave #(
@@ -184,32 +158,22 @@ module memory_writer_output_test_with_axi_mem_slave;
 	  ) AXI_memory_slave_uut (
 		.clk(clk),
 		.rst_n(rst_n),
-		//.awid(awid),
 		.awaddr(awaddr),
 		.awlen(awlen),
-		//.awsize(awsize),
-		//.awburst(awburst),
 		.awvalid(awvalid),
 		.awready(awready),
 		.wdata(wdata),
-		//.wstrb(wstrb),
 		.wlast(wlast),
 		.wvalid(wvalid),
 		.wready(wready),
-		//.bid(bid),
 		.bresp(bresp),
 		.bvalid(bvalid),
 		.bready(bready),
-		//.arid(arid),
 		.araddr(araddr),
 		.arlen(arlen),
-		//.arsize(arsize),
-		//.arburst(arburst),
 		.arvalid(arvalid),
 		.arready(arready),
-		//.rid(rid),
 		.rdata(rdata),
-		//.rresp(rresp),
 		.rlast(rlast),
 		.rvalid(rvalid),
 		.rready(rready)
@@ -230,16 +194,7 @@ module memory_writer_output_test_with_axi_mem_slave;
 		// Initialize inputs
 		rst_n = 1'b0;
 		data_in = 0;
-		
-		/* [commented by LK 01.12.25]
-		start_read = 0;
-		read_id = 0;
-		read_addr = 0;
-		read_len = 0;
-		read_size = 0;
-		read_burst = 0;
-		*/
-		
+		start_write_wiener <= 0;
 		// Reset the system
 		#20;
 		rst_n = 1'b1;
@@ -258,7 +213,6 @@ module memory_writer_output_test_with_axi_mem_slave;
 					#40;
 				end
 				send_transaction(data[i]);
-				// send_transaction({0,data[i],data[i],data[i]});
 			end
 			// End transaction
 			@(posedge clk);

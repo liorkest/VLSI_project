@@ -7,7 +7,7 @@
  ------------------------------------------------------------------------------*/
 
 
-module AXI_stream_master_new_tb;
+module AXI_stream_master_test_new;
 
 	// Parameters
 	parameter DATA_WIDTH = 32;
@@ -93,26 +93,24 @@ module AXI_stream_master_new_tb;
 		rst_n = 1'b1;
 
 		// Send a single transaction
-		#10;
-		send_transaction(32'hA5A5A5A5, 1'b0, 1'b1); // Data: 0xA5A5A5A5, User: 1
+		//#10;
+		//send_transaction(32'hA5A5A5A5, 1'b0, 1'b1); // Data: 0xA5A5A5A5, User: 1
 
 		// Send a multi-cycle transaction
-		#50;
 		send_transaction(32'h12345678, 1'b0, 1'b1); // Data: 0x12345678
 		#10;
-		send_transaction(32'hDEADBEEF, 1'b1, 1'b0); // Data: 0xDEADBEEF
+		send_transaction(32'hDEADBEEF, 1'b0, 1'b0); // Data: 0xDEADBEEF
 		#10;
-		send_transaction(32'hFACEFADE, 1'b1, 1'b1); // Data: 0xFACEFADE
-		send_transaction(32'hABEDDEAF, 1'b0, 1'b1); // Data: 0xABEDDEAF
-		#30;
-		
+		send_transaction(32'hFACEFADE, 1'b0, 1'b0); // Data: 0xFACEFADE
+		#10;
+		send_transaction(32'hABEDDEAF, 1'b1, 1'b0); // Data: 0xABEDDEAF
+		#20;	
 		
 		// Burst transaction
-		#50;
 		send_burst_transaction();
 		
 		// End simulation
-		#50;
+		#10;
 		$finish;
 	end
 
@@ -124,10 +122,10 @@ module AXI_stream_master_new_tb;
 		last_in = last;
 		user_in = user;
 		#10;
+		data_in = {DATA_WIDTH{1'b0}};
 		valid_in = 1'b0;
 		last_in = 1'b0;
 		user_in = 1'b0;
-		#10;
 	end
 	endtask
 	
@@ -142,6 +140,7 @@ module AXI_stream_master_new_tb;
 		  last_in = (i == 4);        // Set last_in high on the last transfer
 		  wait(m_axis_tready);       // Wait for the master to be ready
 		  #10;
+		  user_in = 1'b0;
 		end
 		valid_in = 1'b0;             // De-assert valid after burst
 		last_in = 1'b0;
@@ -149,10 +148,5 @@ module AXI_stream_master_new_tb;
 	  end
 	endtask
 
-	// Waveform generation
-	initial begin
-		$dumpfile("AXI_stream_master_tb.vcd");
-		$dumpvars(0, AXI_stream_master_tb);
-	end
 
 endmodule

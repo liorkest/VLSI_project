@@ -1,8 +1,8 @@
 /*------------------------------------------------------------------------------
- * File          : memory_writer_test_with_axi_mem_slave_inst.sv
+ * File          : from_memory_writer_to_noise_estimation.sv
  * Project       : RTL
  * Author        : eplkls
- * Creation date : Jan 5, 2025
+ * Creation date : Jan 20, 2025
  * Description   :
  *------------------------------------------------------------------------------*/
 
@@ -123,7 +123,6 @@ logic start_of_frame_noise_estimation;
 		.s_axis_tuser(s_axis_tuser),
 		.pixels_per_frame(pixels_per_frame),
 		.frame_height(frame_height),
-		//.frame_width(frame_width),
 		.start_write(start_write),
 		.write_addr(write_addr),
 		.write_len(write_len),
@@ -158,30 +157,8 @@ logic start_of_frame_noise_estimation;
 		.wready(wready),
 		
 		// Write Response Channel
-		//.bid(bid),
-		//.bresp(bresp),
 		.bvalid(bvalid),
 		.bready(bready),
-		
-		/* [commented by LK 01.12.25]
-		// Read Address Channel
-		.arid(arid),
-		.araddr(araddr),
-		.arlen(arlen),
-		.arsize(arsize),
-		.arburst(arburst),
-		.arvalid(arvalid),
-		.arready(arready),
-		
-		// Read Data Channel
-		.rid(rid),
-		.rdata(rdata),
-		.rresp(rresp),
-		.rlast(rlast),
-		.rvalid(rvalid),
-		.rready(rready),
-		*/
-		
 		// Control signals
 		.start_write(start_write),
 		.write_addr(write_addr),
@@ -191,13 +168,6 @@ logic start_of_frame_noise_estimation;
 		.write_data(write_data),
 		.write_strb(write_strb),
 		.start_read(start_read)
-		/* [commented by LK 01.12.25]
-		, .read_id(read_id),
-		.read_addr(read_addr),
-		.read_len(read_len),
-		.read_size(read_size),
-		.read_burst(read_burst)
-		*/
 	);
 	
 	AXI_memory_slave #(
@@ -209,32 +179,22 @@ logic start_of_frame_noise_estimation;
 	  ) AXI_memory_slave_uut (
 		.clk(clk),
 		.rst_n(rst_n),
-		//.awid(awid),
 		.awaddr(awaddr),
 		.awlen(awlen),
-		//.awsize(awsize),
-		//.awburst(awburst),
 		.awvalid(awvalid),
 		.awready(awready),
 		.wdata(wdata),
-		//.wstrb(wstrb),
 		.wlast(wlast),
 		.wvalid(wvalid),
 		.wready(wready),
-		//.bid(bid),
 		.bresp(bresp),
 		.bvalid(bvalid),
 		.bready(bready),
-		//.arid(arid),
 		.araddr(araddr),
 		.arlen(arlen),
-		//.arsize(arsize),
-		//.arburst(arburst),
 		.arvalid(arvalid),
 		.arready(arready),
-		//.rid(rid),
 		.rdata(rdata),
-		//.rresp(rresp),
 		.rlast(rlast),
 		.rvalid(rvalid),
 		.rready(rready)
@@ -252,7 +212,6 @@ logic start_of_frame_noise_estimation;
 		.frame_width(frame_width),
 		.frame_ready(frame_ready_for_noise_est),
 		.rvalid(rvalid),
-		//.arready(arready),
 		.rlast(rlast),
 		.estimated_noise_ready(estimated_noise_ready),
 		.start_read(start_read),
@@ -261,9 +220,7 @@ logic start_of_frame_noise_estimation;
 		.read_size(read_size),
 		.read_burst(read_burst),
 		.base_addr_out(base_addr_out_noise_est),
-		//.noise_estimation_en(noise_estimation_en),
 		.start_of_frame(start_of_frame)
-		//.frame_ready_for_wiener(frame_ready_for_wiener)
 	);
 
 	AXI_memory_master_burst #(
@@ -282,9 +239,6 @@ logic start_of_frame_noise_estimation;
 		.arready(arready),
 		
 		// Read Data Channel
-		//.rid(rid),
-		//.rdata(rdata),
-		//.rresp(rresp),
 		.rlast(rlast),
 		.rvalid(rvalid),
 		.rready(rready),
@@ -312,7 +266,6 @@ logic start_of_frame_noise_estimation;
 		.clk(clk & noise_estimation_en), 
 		.rst_n(rst_n),
 		.start_of_frame(start_of_frame_noise_estimation), //08.01.25
-		//.end_of_frame(end_of_frame), ??????
 		.data_in(rgb_mean_out),
 		.start_data(start_data_noise_est),  
 		.blocks_per_frame(blocks_per_frame),
@@ -396,7 +349,6 @@ logic start_of_frame_noise_estimation;
 					#45;
 				end else if (j==BLOCK_SIZE-1) begin
 					#25;
-					//noise_estimation_en = 0;
 				end
 			end
 		end

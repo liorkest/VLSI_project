@@ -143,7 +143,6 @@ module memory_writer_output_to_axi_stream_master_test;
 		.arready(arready),
 		.rdata(rdata),
 		.rvalid(rvalid),
-		//.rlast(rlast),
 		.m_axis_tdata(reader_data_in),
 		.m_axis_tvalid(valid_in),
 		.m_axis_tready(m_axis_tready),
@@ -177,8 +176,6 @@ module memory_writer_output_to_axi_stream_master_test;
 		.s_axis_tdata(s_axis_tdata),
 		.s_axis_tvalid(s_axis_tvalid),
 		.s_axis_tready(s_axis_tready)
-		//.s_axis_tlast(s_axis_tlast),
-		//.s_axis_tuser(s_axis_tuser)
 	);
 
 	// Connect AXI Stream Master to AXI Stream Slave
@@ -211,8 +208,6 @@ module memory_writer_output_to_axi_stream_master_test;
 		.wready(wready),
 		
 		// Write Response Channel
-		//.bid(bid),
-		//.bresp(bresp),
 		.bvalid(bvalid),
 		.bready(bready),
 		
@@ -225,9 +220,6 @@ module memory_writer_output_to_axi_stream_master_test;
 		.arready(arready),
 		
 		// Read Data Channel
-		//.rid(rid),
-		//.rdata(rdata),
-		//.rresp(rresp),
 		.rlast(rlast),
 		.rvalid(rvalid),
 		.rready(rready),
@@ -303,7 +295,6 @@ module memory_writer_output_to_axi_stream_master_test;
 		// Send a single transaction
 		#10;
 		// Send a multi-cycle transaction
-		//#50;
 		for(int frame=0; frame < frames_num; frame++) begin
 			for(int i=0; i < pixels_per_frame; i++) begin 
 				if (i%BLOCK_SIZE == 0) begin
@@ -313,7 +304,6 @@ module memory_writer_output_to_axi_stream_master_test;
 					#40;
 				end
 				send_transaction(data[i]);
-				// send_transaction({0,data[i],data[i],data[i]});
 			end
 			// End transaction
 			@(posedge clk);

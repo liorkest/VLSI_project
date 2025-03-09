@@ -373,9 +373,6 @@ logic [7:0] rgb_mean_out;
 		.arready(arready_2),
 		
 		// Read Data Channel
-		//.rid(rid),
-		//.rdata(rdata_2),
-		//.rresp(rresp_2),
 		.rlast(rlast_2),
 		.rvalid(rvalid_2),
 		.rready(rready_2),

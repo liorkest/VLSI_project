@@ -8,8 +8,6 @@
 
 module AXI_stream_slave #(
 	parameter DATA_WIDTH = 32 // Width of the AXI stream data
-	// parameter TID_WIDTH  = 4,  // Width of the AXI stream ID             // CHECK THIS!!
-	// parameter TDEST_WIDTH = 4  // Width of the AXI stream destination
 	)(
 	input  logic                       clk,         // Clock signal
 	input  logic                       rst_n,       // Active-low reset signal
@@ -18,10 +16,7 @@ module AXI_stream_slave #(
 	input  logic [DATA_WIDTH-1:0]      s_axis_tdata, // Data signal
 	input  logic                       s_axis_tvalid,// Valid signal
 	output logic                      s_axis_tready,// Ready signal           
-	//input  logic                       s_axis_tlast, // Last signal - end of line // [LS 31.01.25] - only used by memory_writer
-	input  logic                       s_axis_tuser // User custom signal - start of frame // [LS 31.01.25] - only used by memory_writer
-	// input  logic [TID_WIDTH-1:0]       s_axis_tid,   // ID signal
-	// input  logic [TDEST_WIDTH-1:0]     s_axis_tdest  // Destination signal
+	input  logic                       s_axis_tuser // User custom signal - start of frame 
 	);
 
 	// Internal signals

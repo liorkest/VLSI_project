@@ -1,5 +1,5 @@
 /*------------------------------------------------------------------------------
- * File          : 
+ * File          : TOP_AXI_stream_memory_noise_estimation_wiener_NO_AXI_mem_slave.sv.sv
  * Project       : RTL
  * Author        : eplkls
  * Creation date : Jan 20, 2025
@@ -8,7 +8,7 @@
 
 
 
-module TOP_AXI_stream_memory_noise_estimation_wiener_NO_AXI_mem_slave #(
+module TOP_AXI_stream_memory_noise_estimation_wiener_without_AXI_mem_slave #(
 // Parameters
 
 

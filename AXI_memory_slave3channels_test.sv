@@ -79,32 +79,21 @@ AXI_memory_slave_3channels #(
 ) mem_read_uut (
   .clk(clk),
   .rst_n(rst_n),
-  //.awid(awid),
   .awaddr(awaddr),
-  //.awlen(awlen),
-  //.awsize(awsize),
-  //.awburst(awburst),
   .awvalid(awvalid),
   .awready(awready),
   .wdata(wdata),
-  //.wstrb(wstrb),
   .wlast(wlast),
   .wvalid(wvalid),
   .wready(wready),
-  //.bid(bid),
   .bresp(bresp),
   .bvalid(bvalid),
   .bready(bready),
-  //.arid(arid),
   .araddr(araddr),
   .arlen(arlen),
-  //.arsize(arsize),
-  //.arburst(arburst),
   .arvalid(arvalid),
   .arready(arready),
-  //.rid(rid),
   .rdata(rdata),
-  //.rresp(rresp),
   .rlast(rlast),
   .rvalid(rvalid),
   .rready(rready),
@@ -224,7 +213,6 @@ initial begin
 
 
   // Read channel 2 burst sequence (Read from address 0, length 3)
-  //arid_2 = 4'h1;
   araddr_2 = 32'h0;
   arlen_2 = 8'h3;
   arvalid_2 <= 1;

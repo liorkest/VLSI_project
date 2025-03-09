@@ -1,5 +1,5 @@
 /*------------------------------------------------------------------------------
- * File          : memory_reader_noise_estimation_with_axi_mem_slave&mastertb.sv.sv
+ * File          : from_memory_slave_to_noise_estimation_tb
  * Project       : RTL
  * Author        : eplkls
  * Creation date : Jan 6, 2025
@@ -74,7 +74,6 @@ module from_memory_slave_to_noise_estimation_tb;
 		.frame_width(frame_width),
 		.frame_ready(frame_ready),
 		.rvalid(rvalid),
-		//.arready(arready),
 		.rlast(rlast),
 		.estimated_noise_ready(estimated_noise_ready),
 		.start_read(start_read),
@@ -83,9 +82,7 @@ module from_memory_slave_to_noise_estimation_tb;
 		.read_size(read_size),
 		.read_burst(read_burst),
 		.base_addr_out(base_addr_out),
-		//.noise_estimation_en(noise_estimation_en),
 		.start_of_frame(start_of_frame)
-		//.frame_ready_for_wiener(frame_ready_for_wiener)
 	);
 
 	AXI_memory_master_burst #(
@@ -104,9 +101,6 @@ module from_memory_slave_to_noise_estimation_tb;
 		.arready(arready),
 		
 		// Read Data Channel
-		//.rid(rid),
-		//.rdata(rdata),
-		//.rresp(rresp),
 		.rlast(rlast),
 		.rvalid(rvalid),
 		.rready(rready),
@@ -150,12 +144,11 @@ module from_memory_slave_to_noise_estimation_tb;
 		.DATA_WIDTH(BYTE_DATA_WIDTH),
 		.TOTAL_SAMPLES(BLOCK_SIZE*BLOCK_SIZE) // Total number of pixels per frame (MUST be power of 2)
 	) noise_estimation_dut (
-		.clk(clk & noise_estimation_en), /// TBD check if OK
+		.clk(clk & noise_estimation_en), 
 		.rst_n(rst_n),
 		.start_of_frame(start_of_frame_noise_estimation), //08.01.25
-		//.end_of_frame(end_of_frame), ??????
 		.data_in(rgb_mean_out),
-		.start_data(start_data),  /// [06.1.25] check this!!!! NOT sure!!  TBD!!!!!
+		.start_data(start_data),  
 		.blocks_per_frame(blocks_per_frame),
 		.estimated_noise(estimated_noise),
 		.estimated_noise_ready(estimated_noise_ready)

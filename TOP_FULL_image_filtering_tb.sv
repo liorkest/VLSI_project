@@ -103,7 +103,7 @@ logic bready;
 /***************************
  *       TOP module
  ***************************/
-TOP_AXI_stream_memory_noise_estimation_wiener_NO_AXI_mem_slave #(
+TOP_AXI_stream_memory_noise_estimation_wiener_without_AXI_mem_slave #(
 	.BYTE_DATA_WIDTH(BYTE_DATA_WIDTH),
 	.BLOCK_SIZE(BLOCK_SIZE),
 	.DATA_WIDTH(DATA_WIDTH),
@@ -138,33 +138,22 @@ TOP_AXI_stream_memory_noise_estimation_wiener_NO_AXI_mem_slave #(
 	// output from wiener
 	.data_count(data_count),                       // Data count
 	.data_out_wiener(data_out_wiener) ,             // Output data after Wiener filter
-	// wires from YOP to AXI memory slave
-	//.awid(awid),
+	// wires from TOP to AXI memory slave
 	.awaddr(awaddr),
 	.awlen(awlen),
-	//.awsize(awsize),
-	//.awburst(awburst),
 	.awvalid(awvalid),
 	.awready(awready),
 	.wdata(wdata),
-	//.wstrb(wstrb),
 	.wlast(wlast),
 	.wvalid(wvalid),
 	.wready(wready),
-	//.bid(bid),
-	//.bresp(bresp),
 	.bvalid(bvalid),
 	.bready(bready),
-	//.arid(arid),
 	.araddr(araddr),
 	.arlen(arlen),
-	//.arsize(arsize),
-	//.arburst(arburst),
 	.arvalid(arvalid),
 	.arready(arready),
-	//.rid(rid),
 	.rdata(rdata),
-	//.rresp(rresp),
 	.rlast(rlast),
 	.rvalid(rvalid),
 	.rready(rready),
@@ -191,7 +180,6 @@ AXI_memory_slave_3channels #(
 	.clk(clk),
 	.rst_n(rst_n),
 	.awaddr(awaddr),
-	//.awlen(awlen),
 	.awvalid(awvalid),
 	.awready(awready),
 	.wdata(wdata),

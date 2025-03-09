@@ -9,6 +9,7 @@
 
 module multiple_images_filtering_tb #(
 // Parameters of TB
+parameter       DIR = "four_images_tesbench_files",
 parameter 		BYTE_DATA_WIDTH = 8,
 parameter 		BLOCK_SIZE = 8,
 parameter 		DATA_WIDTH = 32,
@@ -104,7 +105,7 @@ logic bready;
 /***************************
  *       TOP module
  ***************************/
-TOP_AXI_stream_memory_noise_estimation_wiener_NO_AXI_mem_slave #(
+TOP_AXI_stream_memory_noise_estimation_wiener_without_AXI_mem_slave #(
 	.BYTE_DATA_WIDTH(BYTE_DATA_WIDTH),
 	.BLOCK_SIZE(BLOCK_SIZE),
 	.DATA_WIDTH(DATA_WIDTH),
@@ -139,33 +140,22 @@ TOP_AXI_stream_memory_noise_estimation_wiener_NO_AXI_mem_slave #(
 	// output from wiener
 	.data_count(data_count),                       // Data count
 	.data_out_wiener(data_out_wiener) ,             // Output data after Wiener filter
-	// wires from YOP to AXI memory slave
-	//.awid(awid),
+	// wires from TOP to AXI memory slave
 	.awaddr(awaddr),
 	.awlen(awlen),
-	//.awsize(awsize),
-	//.awburst(awburst),
 	.awvalid(awvalid),
 	.awready(awready),
 	.wdata(wdata),
-	//.wstrb(wstrb),
 	.wlast(wlast),
 	.wvalid(wvalid),
 	.wready(wready),
-	//.bid(bid),
-	//.bresp(bresp),
 	.bvalid(bvalid),
 	.bready(bready),
-	//.arid(arid),
 	.araddr(araddr),
 	.arlen(arlen),
-	//.arsize(arsize),
-	//.arburst(arburst),
 	.arvalid(arvalid),
 	.arready(arready),
-	//.rid(rid),
 	.rdata(rdata),
-	//.rresp(rresp),
 	.rlast(rlast),
 	.rvalid(rvalid),
 	.rready(rready),
@@ -256,7 +246,7 @@ string file_name_out;
 
 
 initial begin
-	file_valid = 0;
+	file_valid = 0;	
 	for (i = 0; i < FRAMES_NUM; i++) begin
 		// files format example: image0_noisy_in.hex
 		file_name_in = $sformatf("image%0d_noisy_in.hex", i);

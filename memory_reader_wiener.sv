@@ -67,7 +67,6 @@ always_ff @(posedge clk or negedge rst_n) begin
 		wiener_calc_en <= 1'd0;
 		read_addr <= 0;
 		addr_holder <= 0;
-		// frame_ready_for_output_reader <= 0;
 		row_counter <= 16'd0;
 		col_counter <= 16'd0;
 		pixel_x <= 4'd0;
@@ -195,9 +194,6 @@ always_ff @(posedge clk or negedge rst_n) begin
 		
 	end
 end
-
-// [LK 08.01.25] changed noise_estimation_en to async signal
-// assign noise_estimation_en = (state == READ) || start_of_frame; // [LS 12.01.25] Back to FSM
 
 always_comb begin
 	next_state = state;

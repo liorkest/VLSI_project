@@ -1,5 +1,5 @@
 /*------------------------------------------------------------------------------
- * File          : memory_writer_test_with_axi_mem_slave_inst.sv
+ * File          : from_memory_writer_to_noise_estimation_and_wiener.sv
  * Project       : RTL
  * Author        : eplkls
  * Creation date : Jan 5, 2025
@@ -55,9 +55,7 @@ logic [DATA_WIDTH-1:0] rdata;
 logic [1:0] rresp;
 logic rready;
 
-
 // Testbench signals
-
 logic [31:0]                pixels_per_frame=8*8*4;
 int 						frames_num = 1;	
 logic  [DATA_WIDTH-1:0]     s_axis_tdata;
@@ -73,7 +71,6 @@ logic [1:0]              	write_burst;
 logic [DATA_WIDTH-1:0]  	write_data;
 logic [DATA_WIDTH/8-1:0]	write_strb;
 		
-
 // Write Address Channel
 logic [ID_WIDTH-1:0] awid;
 logic [ADDR_WIDTH-1:0] awaddr;
@@ -96,7 +93,6 @@ logic [1:0] bresp;
 logic bvalid;
 logic bready;
 	
-	
 
 // RGB mean
 logic [7:0] rgb_mean_out;
@@ -112,9 +108,6 @@ logic start_of_frame_noise_estimation;
 	logic [ID_WIDTH-1:0] write_id=0;
 
 // WIENER SIGNALS
-
-
-
 	logic rvalid_2;
 	logic arready_2;
 	logic rlast_2;
@@ -147,13 +140,11 @@ logic start_of_frame_noise_estimation;
 
 	// wiener
 	logic start_data_wiener;
-	logic wiener_block_stats_en; // [10.01.25]
-	logic wiener_calc_en;        // [10.01.25]
-	logic [31:0] data_count ; //[LS 12.01.25]
+	logic wiener_block_stats_en;
+	logic wiener_calc_en;       
+	logic [31:0] data_count ; 
 	logic [DATA_WIDTH-1:0] data_out_wiener;
 
-
-///
 
 	memory_writer #(
 		.DATA_WIDTH(DATA_WIDTH)
@@ -202,8 +193,6 @@ logic start_of_frame_noise_estimation;
 		.wready(wready),
 		
 		// Write Response Channel
-		//.bid(bid),
-		//.bresp(bresp),
 		.bvalid(bvalid),
 		.bready(bready),
 		
@@ -227,32 +216,21 @@ logic start_of_frame_noise_estimation;
 	  ) AXI_memory_slave_uut (
 		.clk(clk),
 		.rst_n(rst_n),
-		//.awid(awid),
 		.awaddr(awaddr),
-		//.awlen(awlen),
-		//.awsize(awsize),
-		//.awburst(awburst),
 		.awvalid(awvalid),
 		.awready(awready),
 		.wdata(wdata),
-		//.wstrb(wstrb),
 		.wlast(wlast),
 		.wvalid(wvalid),
 		.wready(wready),
-		//.bid(bid),
 		.bresp(bresp),
 		.bvalid(bvalid),
 		.bready(bready),
-		//.arid(arid),
 		.araddr(araddr),
 		.arlen(arlen),
-		//.arsize(arsize),
-		//.arburst(arburst),
 		.arvalid(arvalid),
 		.arready(arready),
-		//.rid(rid),
 		.rdata(rdata),
-		//.rresp(rresp),
 		.rlast(rlast),
 		.rvalid(rvalid),
 		.rready(rready),
@@ -279,7 +257,6 @@ logic start_of_frame_noise_estimation;
 		.frame_width(frame_width),
 		.frame_ready(frame_ready_for_noise_est),
 		.rvalid(rvalid),
-		//.arready(arready),
 		.rlast(rlast),
 		.estimated_noise_ready(estimated_noise_ready),
 		.start_read(start_read),
@@ -288,9 +265,7 @@ logic start_of_frame_noise_estimation;
 		.read_size(read_size),
 		.read_burst(read_burst),
 		.base_addr_out(base_addr_out_noise_est),
-		//.noise_estimation_en(noise_estimation_en),
 		.start_of_frame(start_of_frame)
-		//.frame_ready_for_wiener(frame_ready_for_wiener)
 	);
 
 	AXI_memory_master_burst #(
@@ -309,9 +284,6 @@ logic start_of_frame_noise_estimation;
 		.arready(arready),
 		
 		// Read Data Channel
-		//.rid(rid),
-		//.rdata(rdata),
-		//.rresp(rresp),
 		.rlast(rlast),
 		.rvalid(rvalid),
 		.rready(rready),
@@ -338,8 +310,7 @@ logic start_of_frame_noise_estimation;
 	) noise_estimation_dut (
 		.clk(clk & noise_estimation_en), 
 		.rst_n(rst_n),
-		.start_of_frame(start_of_frame_noise_estimation), //08.01.25
-		//.end_of_frame(end_of_frame), ??????
+		.start_of_frame(start_of_frame_noise_estimation), 
 		.data_in(rgb_mean_out),
 		.start_data(start_data_noise_est),  
 		.blocks_per_frame(blocks_per_frame),
@@ -349,9 +320,6 @@ logic start_of_frame_noise_estimation;
 
 
 /////////// WIENER BEGIN
-
-
-
 
 	memory_reader_wiener #(
 		.ADDR_WIDTH(ADDR_WIDTH),
@@ -363,7 +331,6 @@ logic start_of_frame_noise_estimation;
 		.frame_height(frame_height),
 		.frame_width(frame_width),
 		.rvalid(rvalid_2),
-		//.arready(arready_2),
 		.rlast(rlast_2),
 		.base_addr_in(base_addr_in_wiener),
 		.wiener_calc_data_count(data_count),
@@ -372,10 +339,6 @@ logic start_of_frame_noise_estimation;
 		.read_len(read_len_2),
 		.read_size(read_size_2),
 		.read_burst(read_burst_2),
-		//.wiener_block_stats_en(wiener_block_stats_en),
-		//.wiener_calc_en(wiener_calc_en),
-		//.start_of_frame(start_of_frame),
-		//.start_data_wiener(start_data_wiener),
 		.estimated_noise_ready(estimated_noise_ready),
 		.end_of_frame(end_of_frame_wiener)
 	);
@@ -388,7 +351,6 @@ logic start_of_frame_noise_estimation;
 		.resetn(rst_n),
 		
 		// Read Address Channel
-		//.arid(arid),
 		.araddr(araddr_2),
 		.arlen(arlen_2),
 		.arsize(arsize_2),
@@ -397,9 +359,6 @@ logic start_of_frame_noise_estimation;
 		.arready(arready_2),
 		
 		// Read Data Channel
-		//.rid(rid),
-		//.rdata(rdata_2),
-		//.rresp(rresp_2),
 		.rlast(rlast_2),
 		.rvalid(rvalid_2),
 		.rready(rready_2),
@@ -431,14 +390,7 @@ logic start_of_frame_noise_estimation;
 		.data_count(data_count)
 	  ); 
 
-
-
-
-
 /////////// WIENER END */
-
-
-
 
 
 	// Clock generation
@@ -567,18 +519,11 @@ logic start_of_frame_noise_estimation;
 					if(i==0) #30;
 					else #30;
 				end else begin
-					/*
-					wiener_block_stats_en = 0; 
-					wiener_calc_en = 0;
-					#40;
-					*/
 					wiener_block_stats_en = 0; 
 					#10;
 					wiener_calc_en = 0;
 					#30;
 				end
-
-
 			end
 		end
 		

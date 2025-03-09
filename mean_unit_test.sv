@@ -10,7 +10,7 @@ module mean_unit_tb;
 
 // Parameters
 parameter DATA_WIDTH = 8;
-parameter TOTAL_SAMPLES = 64;
+parameter TOTAL_SAMPLES = 16;
 
 // Testbench signals
 logic                   clk;

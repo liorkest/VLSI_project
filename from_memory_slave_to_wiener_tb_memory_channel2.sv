@@ -1,5 +1,5 @@
 /*------------------------------------------------------------------------------
- * File          : from_memory_slave_to_wiener_tb.sv
+ * File          : from_memory_slave_to_wiener_tb_memory_channel2.sv
  * Project       : RTL
  * Author        : eplkls
  * Creation date : Jan 9, 2025
@@ -74,7 +74,6 @@ memory_reader_wiener #(
 	.frame_height(frame_height),
 	.frame_width(frame_width),
 	.rvalid(rvalid_2),
-	//.arready(arready_2),
 	.rlast(rlast_2),
 	.base_addr_in(base_addr_in_wiener),
 	.wiener_calc_data_count(data_count),
@@ -83,10 +82,6 @@ memory_reader_wiener #(
 	.read_len(read_len_2),
 	.read_size(read_size_2),
 	.read_burst(read_burst_2),
-	//.wiener_block_stats_en(wiener_block_stats_en),
-	//.wiener_calc_en(wiener_calc_en),
-	//.start_of_frame(start_of_frame),
-	//.start_data_wiener(start_data_wiener),
 	.estimated_noise_ready(estimated_noise_ready),
 	.end_of_frame(end_of_frame_wiener)
 );
@@ -97,20 +92,13 @@ AXI_memory_master_burst #(
 ) AXI_memory_master_burst_dut (
 	.clk(clk),
 	.resetn(rst_n),
-	
-	// Read Address Channel
-	//.arid(arid),
 	.araddr(araddr_2),
 	.arlen(arlen_2),
 	.arsize(arsize_2),
 	.arburst(arburst_2),
 	.arvalid(arvalid_2),
 	.arready(arready_2),
-	
 	// Read Data Channel
-	//.rid(rid),
-	//.rdata(rdata_2),
-	//.rresp(rresp_2),
 	.rlast(rlast_2),
 	.rvalid(rvalid_2),
 	.rready(rready_2),
@@ -131,7 +119,6 @@ AXI_memory_slave_3channels #(
 ) AXI_memory_slave_uut (
   .clk(clk),
   .rst_n(rst_n),
-
   .araddr_2(araddr_2),
   .arlen_2(arlen_2),
   .arvalid_2(arvalid_2),
@@ -174,8 +161,7 @@ initial begin
 	estimated_noise_ready = 0;
 	start_of_frame_wiener = 0;
 	start_data_wiener = 0;
-	// wiener_en = 0;
-	wiener_block_stats_en = 0; // [10.01.25]
+	wiener_block_stats_en = 0; 
 	wiener_calc_en = 1;
 	base_addr_in_wiener = 32'h0000_0000;
 	estimated_noise = 0;
@@ -220,15 +206,9 @@ initial begin
 			end
 			
 			if (j == BLOCK_SIZE - 1) begin
-				// wiener_block_stats_en = 0;
 				if(i==0) #30;
 				else #30;
 			end else begin
-				/*
-				wiener_block_stats_en = 0; 
-				wiener_calc_en = 0;
-				#40;
-				*/
 				wiener_block_stats_en = 0; 
 				#10;
 				wiener_calc_en = 0;

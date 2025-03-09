@@ -57,37 +57,8 @@ module memory_writer_with_axi_mem_tb;
 	logic [1:0] bresp;
 	logic bvalid;
 	logic bready;
-	
-	/* [commented by LK 01.12.25]
-	// Read Address Channel
-	logic [ID_WIDTH-1:0] arid;
-	logic [ADDR_WIDTH-1:0] araddr;
-	logic [7:0] arlen;
-	logic [2:0] arsize;
-	logic [1:0] arburst;
-	logic arvalid;
-	logic arready;
-
-	// Read Data Channel
-	logic [ID_WIDTH-1:0] rid;
-	logic [DATA_WIDTH-1:0] rdata;
-	logic [1:0] rresp;
-	logic rlast;
-	logic rvalid;
-	logic rready;
-	*/ 
-	
 	// Control signals
 	logic [ID_WIDTH-1:0] write_id=0;
-	/* [commented by LK 01.12.25]
-	logic start_read;
-	logic [ID_WIDTH-1:0] read_id;
-	logic [ADDR_WIDTH-1:0] read_addr;
-	logic [31:0] read_len;
-	logic [2:0] read_size;
-	logic [1:0] read_burst;
-	*/
-
 	// Instantiate the AXI_stream_slave module
 	memory_writer #(
 		.DATA_WIDTH(DATA_WIDTH)
@@ -141,25 +112,6 @@ module memory_writer_with_axi_mem_tb;
 		.bvalid(bvalid),
 		.bready(bready),
 		
-		/* [commented by LK 01.12.25]
-		// Read Address Channel
-		.arid(arid),
-		.araddr(araddr),
-		.arlen(arlen),
-		.arsize(arsize),
-		.arburst(arburst),
-		.arvalid(arvalid),
-		.arready(arready),
-		
-		// Read Data Channel
-		.rid(rid),
-		.rdata(rdata),
-		.rresp(rresp),
-		.rlast(rlast),
-		.rvalid(rvalid),
-		.rready(rready),
-		*/
-		
 		// Control signals
 		.start_write(start_write),
 		.write_addr(write_addr),
@@ -169,13 +121,6 @@ module memory_writer_with_axi_mem_tb;
 		.write_data(write_data),
 		.write_strb(write_strb),
 		.start_read(start_read)
-		/* [commented by LK 01.12.25]
-		, .read_id(read_id),
-		.read_addr(read_addr),
-		.read_len(read_len),
-		.read_size(read_size),
-		.read_burst(read_burst)
-		*/
 	);
 
 	// Clock generation
@@ -196,24 +141,12 @@ module memory_writer_with_axi_mem_tb;
 		s_axis_tlast = 1'b0;
 		s_axis_tuser = 1'b0;
 		
-		/* [commented by LK 01.12.25]
-		start_read = 0;
-		read_id = 0;
-		read_addr = 0;
-		read_len = 0;
-		read_size = 0;
-		read_burst = 0;
-		*/
-		
 		// Reset the system
 		#20;
 		rst_n = 1'b1;
 		@(posedge clk);
 
-		// Send a single transaction
-		#10;
 		// Send a multi-cycle transaction
-		//#50;
 		for(int frame=0; frame < 4; frame++) begin
 			for(int i=0; i < pixels_per_frame; i++) begin 
 				send_transaction((i+1)*(frame+1), (i%frame_width == frame_width-1) ,i==0); // Data: 0x12345678, Last: 0 // [LK 01.01.25 changed to (i+1)]
@@ -282,43 +215,5 @@ module memory_writer_with_axi_mem_tb;
 			end
 		end
 	end
-	
-	/* [commented by LK 01.12.25]
-	// AXI Slave Read Response Simulation
-	always @(posedge clk) begin
-		if (!rst_n) begin
-			arready <= 0;
-			rvalid <= 0;
-			rdata <= 0;
-			rlast <= 0;
-			read_len <= 0;  // Make sure read_len is reset
-		end else begin
-			// Simulate arready
-			if (arvalid && !arready) begin
-				arready <= 1;
-			end else begin
-				arready <= 0;
-			end
-
-			// Simulate rvalid and rdata for burst mode
-			if (arvalid && arready) begin
-				rvalid <= 1;  // Keep rvalid high during the burst
-			end else if (rready && rvalid && rlast) begin
-				rvalid <= 0;  // Only deassert rvalid once the burst is finished
-				rlast <= 0;   // Reset rlast
-			end
-			
-			if (rvalid) begin			
-				rdata <= memory[araddr[7:0]];  // Provide read data from memory
-				// Set rlast to 1 when it's the last read in the burst
-				rlast <= (read_len == 0);
-
-				// Decrement the read length as the burst progresses
-				if (read_len > 0) 
-					read_len <= read_len - 1;
-			end 
-		end
-	end
-	*/
 
 endmodule

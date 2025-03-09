@@ -3,8 +3,7 @@
  * Project       : RTL
  * Author        : eplkls
  * Creation date : Jan 05, 2025
- * Description   : 
- * addressing convention: each address increment is WORD. each time we read 4-bytes (1 word)
+ * Description   : This module has 1 read channel and 2 write channels
  *------------------------------------------------------------------------------*/
 
 module AXI_memory_slave_3channels #(
@@ -19,7 +18,6 @@ module AXI_memory_slave_3channels #(
 
 	// Write address channel
 	input  [ADDR_WIDTH-1:0]     awaddr,
-	//input  [7:0]                awlen, [LS 31.01.25] not used
 	input                       awvalid,
 	output logic                  awready,
 
@@ -129,7 +127,7 @@ module AXI_memory_slave_3channels #(
 			
 			if (rvalid) begin			
 				rdata <= memory[araddr];  // Provide read data from memory
-				read_data_count <= read_data_count + 1; // [LK 01.01.24]
+				read_data_count <= read_data_count + 1;
 				rlast <= (read_data_count == read_len - 1);
 			end 
 
@@ -140,7 +138,7 @@ module AXI_memory_slave_3channels #(
 			end else if (rready && rvalid && rlast) begin
 				rvalid <= 0;  // Only deassert rvalid once the burst is finished
 				rlast <= 0;   // Reset rlast
-				read_data_count <= 0; // [LK 01.01.24]
+				read_data_count <= 0; 
 			end
 			
 
@@ -158,7 +156,7 @@ module AXI_memory_slave_3channels #(
 			rvalid_2 <= 0;
 			rdata_2 <= 0;
 			read_len_2 <= 0;  // Make sure read_len is reset
-			read_data_count_2 <= 0; // [LK 01.01.24]
+			read_data_count_2 <= 0; 
 			rlast_2 <= 0;
 			
 		end else begin
@@ -171,7 +169,7 @@ module AXI_memory_slave_3channels #(
 			
 			if (rvalid_2) begin			
 				rdata_2 <= memory[araddr_2];  // Provide read data from memory
-				read_data_count_2 <= read_data_count_2 + 1; // [LK 01.01.24]
+				read_data_count_2 <= read_data_count_2 + 1; 
 				rlast_2 <= (read_data_count_2 == read_len_2 - 1);
 			end 
 
@@ -182,7 +180,7 @@ module AXI_memory_slave_3channels #(
 			end else if (rready_2 && rvalid_2 && rlast_2) begin
 				rvalid_2 <= 0;  // Only deassert rvalid once the burst is finished
 				rlast_2 <= 0;   // Reset rlast
-				read_data_count_2 <= 0; // [LK 01.01.24]
+				read_data_count_2 <= 0;
 			end
 			
 

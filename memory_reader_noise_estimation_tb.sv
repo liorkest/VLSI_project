@@ -81,28 +81,7 @@ module memory_reader_noise_estimation_tb;
 	) AXI_memory_master_burst_dut (
 		.clk(clk),
 		.resetn(rst_n),
-		
-		/*
-		// Write Address Channel
-		.awid(awid),
-		.awaddr(awaddr),
-		.awlen(awlen),
-		.awsize(awsize),
-		.awburst(awburst),
-		.awvalid(awvalid),
-		.awready(awready),
-		
-		// Write Data Channel
-		.wdata(wdata),
-		.wstrb(wstrb),
-		.wlast(wlast),
-		.wvalid(wvalid),
-		.wready(wready),
-		*/
-		
 		// Write Response Channel
-		//.bid(bid),
-		//.bresp(bresp),
 		.bvalid(bvalid),
 		.bready(bready),
 		
@@ -115,24 +94,11 @@ module memory_reader_noise_estimation_tb;
 		.arready(arready),
 		
 		// Read Data Channel
-		//.rid(rid),
-		//.rdata(rdata),
-		//.rresp(rresp),
 		.rlast(rlast),
 		.rvalid(rvalid),
 		.rready(rready),
 		
 		// Control signals
-		/*
-		.start_write(start_write),
-		.write_id(write_id),
-		.write_addr(write_addr),
-		.write_len(write_len),
-		.write_size(write_size),
-		.write_burst(write_burst),
-		.write_data(write_data),
-		.write_strb(write_strb),
-		*/
 		.start_read(start_read),
 		.read_addr(read_addr),
 		.read_len(read_len),
@@ -209,12 +175,6 @@ module memory_reader_noise_estimation_tb;
 				read_data_count <= read_data_count + 1; // [LK 01.01.24]
 				// Set rlast to 1 when it's the last read in the burst
 				rlast <= (len == 1); 
-				
-				/* [LK 01.01.24] remove this -> is stopped the read operation. 
-				// Decrement the read length as the burst progresses
-				if (read_len > 0) 
-					read_len <= read_len - 1;
-					*/
 			end 
 		end
 	end

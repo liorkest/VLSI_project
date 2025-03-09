@@ -10,7 +10,7 @@ module variance_unit_tb;
 
 // Parameters
 parameter DATA_WIDTH = 8;
-parameter TOTAL_SAMPLES = 64;
+parameter TOTAL_SAMPLES = 16;
 
 // Testbench signals
 logic                   clk;
@@ -57,6 +57,7 @@ endtask
 // Task to feed sample data
 task feed_sample(input [DATA_WIDTH-1:0] sample, int i);
 	begin
+		
 		data_in = sample;
 		#10; // Wait one clock cycle
 		start_data_in = 1'b0;
@@ -77,7 +78,7 @@ initial begin
 	end
 		
 	// Set a known mean value (can be any value for testing)
-	mean_in = 8'd32;
+	mean_in = 8'd8;
 	
 	start_data_in = 1'b1;
 	// Feed samples to the variance calculator
@@ -89,14 +90,14 @@ initial begin
 	// Wait for ready signal and check the result
 	@(posedge ready);
 	$display("Variance calculated: %d", variance_out);
-	#10
+	#20
 	// Initialize sample data (you can customize this array)
 	for (i = 0; i < TOTAL_SAMPLES; i++) begin
 		sample_data[i] = i + 11; // Example: Sequential data values
 	end
 
 	// Set a known mean value (can be any value for testing)
-	mean_in = 8'd42;
+	mean_in = 8'd18;
 	
 	start_data_in = 1'b1;
 	// Feed samples to the variance calculator
@@ -108,7 +109,7 @@ initial begin
 	// Wait for ready signal and check the result
 	@(posedge ready);
 	$display("Variance calculated: %d", variance_out);
-	#10
+	#20
 	// Set a known mean value (can be any value for testing)
 	mean_in = 8'd6;
 	

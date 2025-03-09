@@ -115,7 +115,7 @@ module AXI_memory_slave #(
 			
 			if (rvalid) begin			
 				rdata <= memory[araddr];  // Provide read data from memory
-				read_data_count <= read_data_count + 1; // [LK 01.01.24]
+				read_data_count <= read_data_count + 1;
 				rlast <= (read_data_count == read_len - 1);
 			end 
 
@@ -126,7 +126,7 @@ module AXI_memory_slave #(
 			end else if (rready && rvalid && rlast) begin
 				rvalid <= 0;  // Only deassert rvalid once the burst is finished
 				rlast <= 0;   // Reset rlast
-				read_data_count <= 0; // [LK 01.01.24]
+				read_data_count <= 0; 
 			end
 			
 

@@ -39,9 +39,9 @@ logic [31:0] base_addr ;
 logic [1:0] frame_count; // 0,1,2 values
 logic [31:0] line_count;
 logic [15:0] pixels_in_line_count;
-assign base_addr = pixels_per_frame * frame_count; // [LK 06.01.25] changer from (1 << write_size) to 1
+assign base_addr = pixels_per_frame * frame_count; 
 logic s_axis_tready_logic;
-logic tdata_shift_en; // [LK 01.01.25]
+logic tdata_shift_en; 
 assign s_axis_tready = s_axis_tready_logic;
 
 // Instantiate the AXI_stream_slave module
@@ -53,7 +53,6 @@ AXI_stream_slave #(
 	.s_axis_tdata(s_axis_tdata),
 	.s_axis_tvalid(s_axis_tvalid),
 	.s_axis_tready(s_axis_tready_logic),
-	//.s_axis_tlast(s_axis_tlast),
 	.s_axis_tuser(s_axis_tuser)
 );
 
@@ -145,14 +144,8 @@ always_comb begin
 		end
 
 		RECEIVE: begin
-			// write_data = s_axis_tdata; [removed LK 1.1.25]
 			tdata_shift_en = 1;//[LK 01.01.25]
-			
-			/*              // [LK 01.01.25] changed because data is now at falling edge 
-			if (!s_axis_tvalid && line_count == frame_height-1 && pixels_in_line_count == frame_width-1) begin
-				next_state = FRAME_READY;
-			end
-			*/
+
 			if (!s_axis_tvalid && line_count == frame_height) begin
 				next_state = FRAME_READY;
 			end

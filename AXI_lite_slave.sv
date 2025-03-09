@@ -34,7 +34,7 @@ module AXI_lite_slave #(
 	output wire                    arready,
 
 	// Read Data Channel
-	output wire [DATA_WIDTH-1:0]   rdata,
+	output logic [DATA_WIDTH-1:0]   rdata,
 	output wire              rresp,
 	output wire                    rvalid,
 	input  wire                    rready,
@@ -135,6 +135,7 @@ module AXI_lite_slave #(
 	always_comb begin
 		read_state_next = read_state;
 		read_addr=0;
+		rdata = 0;
 		case (read_state)
 			READ_IDLE: begin
 				read_addr=0;
@@ -148,6 +149,7 @@ module AXI_lite_slave #(
 			end
 			READ_DATA: begin
 				read_addr = araddr[ADDR_WIDTH-1:0];
+				rdata = read_data;
 				if (rvalid && rready)
 					read_state_next = READ_IDLE;
 			end
@@ -159,7 +161,7 @@ module AXI_lite_slave #(
 
 	// Read Data Channel
 	assign rvalid = (read_state == READ_DATA);
-	assign rdata = read_data;
+
 	assign rresp = 0;
 
 endmodule

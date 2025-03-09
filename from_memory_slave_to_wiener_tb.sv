@@ -75,7 +75,6 @@ memory_reader_wiener #(
 	.frame_height(frame_height),
 	.frame_width(frame_width),
 	.rvalid(rvalid),
-	//.arready(arready),
 	.rlast(rlast),
 	.base_addr_in(base_addr_in),
 	.wiener_calc_data_count(data_count),
@@ -84,10 +83,6 @@ memory_reader_wiener #(
 	.read_len(read_len),
 	.read_size(read_size),
 	.read_burst(read_burst),
-	//.wiener_block_stats_en(wiener_block_stats_en),
-	//.wiener_calc_en(wiener_calc_en),
-	//.start_of_frame(start_of_frame),
-	//.start_data(start_data),
 	.estimated_noise_ready(estimated_noise_ready),
 	.end_of_frame(end_of_frame)
 );
@@ -100,7 +95,6 @@ AXI_memory_master_burst #(
 	.resetn(rst_n),
 	
 	// Read Address Channel
-	//.arid(arid),
 	.araddr(araddr),
 	.arlen(arlen),
 	.arsize(arsize),
@@ -109,9 +103,6 @@ AXI_memory_master_burst #(
 	.arready(arready),
 	
 	// Read Data Channel
-	//.rid(rid),
-	//.rdata(rdata),
-	//.rresp(rresp),
 	.rlast(rlast),
 	.rvalid(rvalid),
 	.rready(rready),
@@ -225,11 +216,6 @@ initial begin
 				if(i==0) #30;
 				else #30;
 			end else begin
-				/*
-				wiener_block_stats_en = 0; 
-				wiener_calc_en = 0;
-				#40;
-				*/
 				wiener_block_stats_en = 0; 
 				#10;
 				wiener_calc_en = 0;
@@ -239,7 +225,7 @@ initial begin
 
 		end
 	end
-	
+	// process data
 	#5000;
 	$finish;
 end

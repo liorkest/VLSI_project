@@ -61,7 +61,6 @@ memory_reader_wiener #(
 	.frame_height(frame_height),
 	.frame_width(frame_width),
 	.rvalid(rvalid),
-	//.arready(arready),
 	.rlast(rlast),
 	.base_addr_in(base_addr_in),
 	.start_read(start_read),
@@ -69,7 +68,6 @@ memory_reader_wiener #(
 	.read_len(read_len),
 	.read_size(read_size),
 	.read_burst(read_burst),
-	//.wiener_en(wiener_en),
 	.start_of_frame(start_of_frame),
 	.estimated_noise_ready(estimated_noise_ready),
 	.end_of_frame(end_of_frame)
@@ -90,9 +88,6 @@ AXI_memory_master_burst #(
 	.arready(arready),
 	
 	// Read Data Channel
-	//.rid(rid),
-	//.rdata(rdata),
-	//.rresp(rresp),
 	.rlast(rlast),
 	.rvalid(rvalid),
 	.rready(rready),

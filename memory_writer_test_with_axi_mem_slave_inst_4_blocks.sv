@@ -1,8 +1,8 @@
 /*------------------------------------------------------------------------------
- * File          : memory_writer_test_with_axi_mem_slave_inst.sv
+ * File          : memory_writer_test_with_axi_mem_slave_inst_4_blocks.sv
  * Project       : RTL
  * Author        : eplkls
- * Creation date : Jan 5, 2025
+ * Creation date : Jan 20, 2025
  * Description   :
  *------------------------------------------------------------------------------*/
 
@@ -59,35 +59,8 @@ module memory_writer_test_with_axi_mem_slave_inst_4_blocks;
 	logic bvalid;
 	logic bready;
 	
-	/* [commented by LK 01.12.25]
-	// Read Address Channel
-	logic [ID_WIDTH-1:0] arid;
-	logic [ADDR_WIDTH-1:0] araddr;
-	logic [7:0] arlen;
-	logic [2:0] arsize;
-	logic [1:0] arburst;
-	logic arvalid;
-	logic arready;
-
-	// Read Data Channel
-	logic [ID_WIDTH-1:0] rid;
-	logic [DATA_WIDTH-1:0] rdata;
-	logic [1:0] rresp;
-	logic rlast;
-	logic rvalid;
-	logic rready;
-	*/ 
-	
 	// Control signals
 	logic [ID_WIDTH-1:0] write_id=0;
-	/* [commented by LK 01.12.25]
-	logic start_read;
-	logic [ID_WIDTH-1:0] read_id;
-	logic [ADDR_WIDTH-1:0] read_addr;
-	logic [31:0] read_len;
-	logic [2:0] read_size;
-	logic [1:0] read_burst;
-	*/
 
 	// Instantiate the AXI_stream_slave module
 	memory_writer #(
@@ -137,29 +110,8 @@ module memory_writer_test_with_axi_mem_slave_inst_4_blocks;
 		.wready(wready),
 		
 		// Write Response Channel
-		//.bid(bid),
-		//.bresp(bresp),
 		.bvalid(bvalid),
 		.bready(bready),
-		
-		/* [commented by LK 01.12.25]
-		// Read Address Channel
-		.arid(arid),
-		.araddr(araddr),
-		.arlen(arlen),
-		.arsize(arsize),
-		.arburst(arburst),
-		.arvalid(arvalid),
-		.arready(arready),
-		
-		// Read Data Channel
-		.rid(rid),
-		.rdata(rdata),
-		.rresp(rresp),
-		.rlast(rlast),
-		.rvalid(rvalid),
-		.rready(rready),
-		*/
 		
 		// Control signals
 		.start_write(start_write),
@@ -170,13 +122,6 @@ module memory_writer_test_with_axi_mem_slave_inst_4_blocks;
 		.write_data(write_data),
 		.write_strb(write_strb),
 		.start_read(start_read)
-		/* [commented by LK 01.12.25]
-		, .read_id(read_id),
-		.read_addr(read_addr),
-		.read_len(read_len),
-		.read_size(read_size),
-		.read_burst(read_burst)
-		*/
 	);
 	
 	AXI_memory_slave #(
@@ -188,32 +133,22 @@ module memory_writer_test_with_axi_mem_slave_inst_4_blocks;
 	  ) AXI_memory_slave_uut (
 		.clk(clk),
 		.rst_n(rst_n),
-		//.awid(awid),
 		.awaddr(awaddr),
 		.awlen(awlen),
-		//.awsize(awsize),
-		//.awburst(awburst),
 		.awvalid(awvalid),
 		.awready(awready),
 		.wdata(wdata),
-		//.wstrb(wstrb),
 		.wlast(wlast),
 		.wvalid(wvalid),
 		.wready(wready),
-		//.bid(bid),
 		.bresp(bresp),
 		.bvalid(bvalid),
 		.bready(bready),
-		//.arid(arid),
 		.araddr(araddr),
 		.arlen(arlen),
-		//.arsize(arsize),
-		//.arburst(arburst),
 		.arvalid(arvalid),
 		.arready(arready),
-		//.rid(rid),
 		.rdata(rdata),
-		//.rresp(rresp),
 		.rlast(rlast),
 		.rvalid(rvalid),
 		.rready(rready)
@@ -237,15 +172,6 @@ module memory_writer_test_with_axi_mem_slave_inst_4_blocks;
 		s_axis_tvalid = 1'b0;
 		s_axis_tlast = 1'b0;
 		s_axis_tuser = 1'b0;
-		
-		/* [commented by LK 01.12.25]
-		start_read = 0;
-		read_id = 0;
-		read_addr = 0;
-		read_len = 0;
-		read_size = 0;
-		read_burst = 0;
-		*/
 		
 		// Reset the system
 		#20;
